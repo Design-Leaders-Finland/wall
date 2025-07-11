@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:intl/intl.dart'; // For formatting dates
+
+import 'models/message.dart';
+import 'services/auth_service.dart';
+import 'services/message_service.dart';
+import 'widgets/message_input.dart';
+import 'widgets/message_list.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,126 +14,90 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final TextEditingController _messageController = TextEditingController();
-  List<Map<String, dynamic>> _messages = [];
-  late final RealtimeChannel _messagesChannel;
-  DateTime? _lastMessageSentTime; // To track the last message sent by this user
-
-  static const int _messageMaxLength = 160; // Max message length
-  static const int _messageCooldownMinutes = 1; // Cooldown period in minutes
+  final AuthService _authService = AuthService();
+  final MessageService _messageService = MessageService();
+  
+  List<Message> _messages = [];
+  DateTime? _lastMessageSentTime;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _signInAndListen();
+    _initialize();
   }
 
-  Future<void> _signInAndListen() async {
-    // Ensure user is signed in anonymously first
-    await Supabase.instance.client.auth.signInAnonymously();
-
-    // Fetch initial messages
-    await _fetchMessages();
-
-    // Set up real-time listener for new messages
-    _messagesChannel = Supabase.instance.client
-        .channel('public:messages')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.insert,
-          schema: 'public',
-          table: 'messages',
-          callback: (payload) {
-            final newMessage = payload.newRecord;
-            setState(() {
-              _messages.add(newMessage);
-              _sortMessages();
-            });
-          },
-        )
-        .subscribe();
-  }
-  // In your home_page.dart or a special auth file
-Future<void> signInAnonymously() async {
-  try {
-    await Supabase.instance.client.auth.signInAnonymously();
-    print('Signed in anonymously!'); // Hooray!
-  } on AuthException catch (e) {
-    print('Oops, error signing in: ${e.message}');
-  } catch (e) {
-    print('Something unexpected happened: $e');
-  }
-}
-
-  Future<void> _fetchMessages() async {
-    try {
-      final data = await Supabase.instance.client
-          .from('messages')
-          .select('*')
-          .order('created_at', ascending: true); // Sort by creation time
-
+  Future<void> _initialize() async {
+    setState(() => _isLoading = true);
+    
+    // Sign in anonymously
+    final user = await _authService.signInAnonymously();
+    if (user == null) {
+      _showMessage('Failed to sign in. Please restart the app.');
+      return;
+    }
+    
+    // Setup message callback
+    _messageService.onNewMessage = (newMessage) {
       setState(() {
-        _messages = List<Map<String, dynamic>>.from(data);
+        _messages.add(newMessage);
         _sortMessages();
       });
-    } catch (e) {
-      print('Error fetching messages: $e');
-    }
+    };
+    
+    // Initialize realtime subscription
+    _messageService.initRealtimeSubscription();
+    
+    // Fetch initial messages
+    await _fetchMessages();
+    
+    setState(() => _isLoading = false);
   }
 
-  void _sortMessages() {
-    _messages.sort((a, b) {
-      final DateTime timeA = DateTime.parse(a['created_at']);
-      final DateTime timeB = DateTime.parse(b['created_at']);
-      return timeA.compareTo(timeB);
+  Future<void> _fetchMessages() async {
+    final messages = await _messageService.fetchMessages();
+    setState(() {
+      _messages = messages;
+      _sortMessages();
     });
   }
 
-  Future<void> _sendMessage() async {
-    final String messageContent = _messageController.text.trim();
+  void _sortMessages() {
+    _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  }
 
-    if (messageContent.isEmpty) {
-      _showMessage('Message cannot be empty.');
-      return;
-    }
-
-    if (messageContent.length > _messageMaxLength) {
-      _showMessage('Message exceeds $_messageMaxLength characters.');
-      return;
-    }
-
-    final user = Supabase.instance.client.auth.currentUser;
+  Future<void> _handleSendMessage(String content) async {
+    final user = _authService.getCurrentUser();
     if (user == null) {
       _showMessage('User not authenticated. Please restart the app.');
       return;
     }
 
-    // Check for rate limiting
+    // Rate limit check
     if (_lastMessageSentTime != null) {
       final Duration elapsed = DateTime.now().difference(_lastMessageSentTime!);
-      if (elapsed.inMinutes < _messageCooldownMinutes) {
-        final int remainingSeconds = (_messageCooldownMinutes * 60) - elapsed.inSeconds;
+      if (elapsed.inMinutes < MessageService.messageCooldownMinutes) {
+        final int remainingSeconds = (MessageService.messageCooldownMinutes * 60) - elapsed.inSeconds;
         _showMessage('Please wait $remainingSeconds seconds before sending another message.');
         return;
       }
     }
 
-    try {
-      await Supabase.instance.client.from('messages').insert({
-        'content': messageContent,
-        'user_id': user.id,
-        'created_at': DateTime.now().toIso8601String(),
-      });
-      _messageController.clear();
+    final success = await _messageService.sendMessage(
+      content: content,
+      userId: user.id,
+      lastMessageSentTime: _lastMessageSentTime,
+    );
+
+    if (success) {
       setState(() {
-        _lastMessageSentTime = DateTime.now(); // Update last sent time on success
+        _lastMessageSentTime = DateTime.now();
       });
-    } catch (e) {
-      _showMessage('Error sending message: $e');
-      print('Error sending message: $e'); // Log for debugging
+    } else {
+      _showMessage('Failed to send message. Please try again.');
     }
   }
 
-  // Helper to show a temporary message to the user
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -139,72 +107,31 @@ Future<void> signInAnonymously() async {
     );
   }
 
-  // Message expiration logic
-  List<Map<String, dynamic>> _getVisibleMessages() {
-    final now = DateTime.now();
-    return _messages.where((message) {
-      final createdAt = DateTime.parse(message['created_at']);
-      return now.difference(createdAt).inMinutes < 5;
-    }).toList();
-  }
-
   @override
   void dispose() {
-    _messagesChannel.unsubscribe();
-    _messageController.dispose();
+    _messageService.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final visibleMessages = _getVisibleMessages(); // Filter messages for display
+    // Filter to only visible messages (not expired)
+    final visibleMessages = _messageService.getVisibleMessages(_messages);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ephemeral Chat'),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              reverse: true, // Show latest messages at the bottom
-              itemCount: visibleMessages.length,
-              itemBuilder: (context, index) {
-                final message = visibleMessages[visibleMessages.length - 1 - index]; // Display in correct order
-                final createdAt = DateTime.parse(message['created_at']);
-                final formattedTime = DateFormat('HH:mm').format(createdAt.toLocal());
-                return ListTile(
-                  title: Text(message['content']),
-                  subtitle: Text('$formattedTime - ${message['user_id']?.substring(0, 8) ?? 'Anon'}'),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    maxLength: _messageMaxLength, // Enforce max length in UI
-                    decoration: const InputDecoration(
-                      hintText: 'Enter your message...',
-                      border: OutlineInputBorder(),
-                      counterText: '', // Hide default character counter
-                    ),
-                    onSubmitted: (value) => _sendMessage(),
-                  ),
+                  child: MessageList(messages: visibleMessages),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _sendMessage,
-                ),
+                MessageInput(onSendMessage: _handleSendMessage),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }
