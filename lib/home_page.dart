@@ -4,6 +4,7 @@ import 'models/message.dart';
 import 'services/auth_service.dart';
 import 'services/message_service.dart';
 import 'exceptions/auth_exception.dart';
+import 'utils/logger.dart';
 import 'widgets/message_input.dart';
 import 'widgets/message_list.dart';
 
@@ -32,24 +33,26 @@ class _HomePageState extends State<HomePage> {
   bool _authFailed = false;
   String _authErrorMessage = '';
   
+  // Track connectivity state
+  bool _isOffline = false;
+  
   Future<void> _initialize() async {
     setState(() {
       _isLoading = true;
       _authFailed = false;
       _authErrorMessage = '';
+      _isOffline = false;
     });
     
     try {
       // Sign in anonymously
       final user = await _authService.signInAnonymously();
+      
+      // Even if authentication fails (user is null), we'll try to proceed in read-only mode
       if (user == null) {
-        // Authentication failed
-        setState(() {
-          _authFailed = true;
-          _authErrorMessage = 'Failed to sign in anonymously.';
-          _isLoading = false;
-        });
-        return;
+        AppLogger.warning('No user returned after sign in attempt. Continuing in read-only mode.');
+      } else {
+        AppLogger.info('Authentication successful for user: ${user.id}');
       }
       
       // Setup message callback
@@ -60,27 +63,69 @@ class _HomePageState extends State<HomePage> {
         });
       };
       
-      // Initialize realtime subscription
+      // Initialize realtime subscription (even if auth failed)
       _messageService.initRealtimeSubscription();
       
-      // Fetch initial messages
+      // Fetch initial messages (even if auth failed)
       await _fetchMessages();
       
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _isOffline = !_messageService.isOnline;
+      });
+      
+      if (_isOffline) {
+        _showMessage('Working in offline mode. Messages are stored locally.');
+      }
     } on AuthFailedException catch (e) {
-      // Handle authentication-specific errors
-      setState(() {
-        _authFailed = true;
-        _authErrorMessage = e.toString();
-        _isLoading = false;
-      });
+      AppLogger.error('Authentication exception caught in HomePage', e);
+      
+      // Try to continue in read-only mode despite auth failure
+      try {
+        // Initialize realtime subscription anyway
+        _messageService.initRealtimeSubscription();
+        
+        // Fetch initial messages - will use local storage if online fetch fails
+        await _fetchMessages();
+        
+        setState(() {
+          _isLoading = false;
+          _isOffline = true; // Authentication failed, so we're in offline mode
+          // Don't show auth failure screen if we have local messages
+          _authFailed = false;
+        });
+        
+        _showMessage('Authentication failed. Working in offline mode with local data.');
+      } catch (innerError) {
+        // Only if both auth and data fetching fail, show the error screen
+        setState(() {
+          _authFailed = true;
+          _authErrorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      // Handle any other errors during initialization
-      setState(() {
-        _authFailed = true;
-        _authErrorMessage = 'Error during initialization: ${e.toString()}';
-        _isLoading = false;
-      });
+      AppLogger.error('Unexpected error during initialization', e);
+      
+      // Try to fetch local messages even if initialization failed
+      try {
+        await _fetchMessages();
+        
+        setState(() {
+          _isLoading = false;
+          _isOffline = true;
+          _authFailed = false; // Don't show error if we have local messages
+        });
+        
+        _showMessage('Connection error. Working in offline mode with local data.');
+      } catch (localError) {
+        // If even local storage fails, show the error screen
+        setState(() {
+          _authFailed = true;
+          _authErrorMessage = 'Error during initialization: ${e.toString()}';
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -89,7 +134,30 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _messages = messages;
       _sortMessages();
+      _isOffline = !_messageService.isOnline;
     });
+  }
+  
+  // Try to reconnect to the server
+  Future<void> _tryReconnect() async {
+    if (!_isOffline) return;
+    
+    setState(() => _isLoading = true);
+    
+    try {
+      final success = await _messageService.tryReconnect();
+      if (success) {
+        await _fetchMessages();
+        _showMessage('Reconnected successfully. Your local messages will sync when you send a new message.');
+      } else {
+        _showMessage('Still offline. Your messages are saved locally.');
+      }
+    } catch (e) {
+      AppLogger.error('Error trying to reconnect', e);
+      _showMessage('Failed to reconnect. Still in offline mode.');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   void _sortMessages() {
@@ -98,11 +166,31 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _handleSendMessage(String content) async {
     final user = _authService.getCurrentUser();
+    
     if (user == null) {
-      _showMessage('User not authenticated. Please restart the app.');
-      return;
+      // Try to sign in again if no user is available
+      AppLogger.info('No user found when trying to send message. Attempting to sign in...');
+      try {
+        final newUser = await _authService.signInAnonymously();
+        if (newUser == null) {
+          _showMessage('Unable to authenticate. Try restarting the app or check your internet connection.');
+          return;
+        }
+        
+        // Continue with the newly signed-in user
+        return _processSendMessage(content, newUser.id);
+      } catch (e) {
+        AppLogger.error('Failed to sign in when trying to send message', e);
+        _showMessage('Authentication failed. Please restart the app.');
+        return;
+      }
     }
 
+    return _processSendMessage(content, user.id);
+  }
+  
+  // Helper method to process the message sending after authentication check
+  Future<void> _processSendMessage(String content, String userId) async {
     // Rate limit check
     if (_lastMessageSentTime != null) {
       final Duration elapsed = DateTime.now().difference(_lastMessageSentTime!);
@@ -113,9 +201,10 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
+    AppLogger.info('Sending message as user: $userId');
     final success = await _messageService.sendMessage(
       content: content,
-      userId: user.id,
+      userId: userId,
       lastMessageSentTime: _lastMessageSentTime,
     );
 
@@ -158,6 +247,33 @@ class _HomePageState extends State<HomePage> {
         ),
         centerTitle: false,
         actions: [
+          // Offline indicator with reconnect button
+          if (_isOffline)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Chip(
+                    label: const Text('OFFLINE', 
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
+                    backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                    labelStyle: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+                    avatar: Icon(Icons.cloud_off, 
+                      size: 16, 
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: _tryReconnect,
+                    tooltip: 'Try to reconnect',
+                  ),
+                ],
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
