@@ -94,7 +94,14 @@ class MessageService {
       _isOnline = true;
       await LocalStorageService.saveMessages(messages);
       
-      return messages;
+      // Also get current user's messages and combine them
+      final currentUserMessages = await LocalStorageService.loadCurrentUserMessages();
+      final allMessages = [...messages, ...currentUserMessages];
+      
+      // Sort by creation time
+      allMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      
+      return allMessages;
     } catch (e) {
       AppLogger.error('Error fetching messages from Supabase', e);
       _isOnline = false;
@@ -106,10 +113,10 @@ class MessageService {
         AppLogger.warning('Authentication/connectivity issue. Falling back to local storage.');
       }
       
-      // Fall back to local storage
-      final localMessages = await LocalStorageService.loadMessages();
-      AppLogger.info('Loaded ${localMessages.length} messages from local storage');
-      return localMessages;
+      // Fall back to local storage - load both regular cached messages and current user's messages
+      final allMessages = await LocalStorageService.loadAllMessages();
+      AppLogger.info('Loaded ${allMessages.length} messages from local storage (including user messages)');
+      return allMessages;
     }
   }
   
@@ -141,22 +148,30 @@ class MessageService {
       content: content,
       userId: userId,
       createdAt: DateTime.now(),
+      isFromCurrentUser: true, // Mark as from current user
     );
     
     try {
       if (_isOnline) {
         // Try to insert into database
-        await _supabaseClient.from(tableName).insert(message.toJson());
+        final messageToSend = {
+          'content': message.content,
+          'user_id': message.userId,
+          'created_at': message.createdAt.toIso8601String(),
+          // Don't send isFromCurrentUser to the server
+        };
         
-        // Save locally as well for offline access
-        await LocalStorageService.addMessage(message);
+        await _supabaseClient.from(tableName).insert(messageToSend);
+        
+        // Save locally as well for offline access, marked as current user's message
+        await LocalStorageService.addCurrentUserMessage(message);
         
         AppLogger.info('Message sent and stored both remotely and locally');
         return true;
       } else {
-        // If we know we're offline, just store locally
+        // If we know we're offline, just store locally as current user's message
         AppLogger.info('Offline mode: Storing message locally only');
-        final success = await LocalStorageService.addMessage(message);
+        final success = await LocalStorageService.addCurrentUserMessage(message);
         
         // If local storage succeeds, trigger the message callback
         if (success && onNewMessage != null) {
@@ -171,7 +186,7 @@ class MessageService {
       // If remote storage fails, try local storage as fallback
       _isOnline = false;
       AppLogger.info('Falling back to local storage for message');
-      final success = await LocalStorageService.addMessage(message);
+      final success = await LocalStorageService.addCurrentUserMessage(message);
       
       // If local storage succeeds, trigger the message callback
       if (success && onNewMessage != null) {
@@ -183,7 +198,10 @@ class MessageService {
   }
   
   // Filter messages to only show those that are not expired
+  // (always show current user's messages even if expired)
   List<Message> getVisibleMessages(List<Message> messages) {
-    return messages.where((message) => !message.isExpired()).toList();
+    return messages.where((message) => 
+      !message.isExpired() || message.isFromCurrentUser
+    ).toList();
   }
 }

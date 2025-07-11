@@ -4,11 +4,13 @@ class Message {
   final String content;
   final String userId;
   final DateTime createdAt;
+  final bool isFromCurrentUser;
   
   Message({
     required this.content, 
     required this.userId, 
-    required this.createdAt
+    required this.createdAt,
+    this.isFromCurrentUser = false,
   });
   
   // Create from JSON (Map)
@@ -19,6 +21,7 @@ class Message {
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at']) 
           : DateTime.now(),
+      isFromCurrentUser: json['is_from_current_user'] ?? false,
     );
   }
   
@@ -28,6 +31,7 @@ class Message {
       'content': content,
       'user_id': userId,
       'created_at': createdAt.toIso8601String(),
+      'is_from_current_user': isFromCurrentUser,
     };
   }
   

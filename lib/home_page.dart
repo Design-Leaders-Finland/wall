@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'models/message.dart';
 import 'services/auth_service.dart';
 import 'services/message_service.dart';
@@ -35,6 +34,7 @@ class _HomePageState extends State<HomePage> {
   
   // Track connectivity state
   bool _isOffline = false;
+  int _localMessageCount = 0;
   
   Future<void> _initialize() async {
     setState(() {
@@ -131,10 +131,13 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchMessages() async {
     final messages = await _messageService.fetchMessages();
+    final localMessages = messages.where((m) => m.isFromCurrentUser).toList();
+    
     setState(() {
       _messages = messages;
       _sortMessages();
       _isOffline = !_messageService.isOnline;
+      _localMessageCount = localMessages.length;
     });
   }
   
@@ -209,9 +212,16 @@ class _HomePageState extends State<HomePage> {
     );
 
     if (success) {
+      // Update timestamp
       setState(() {
         _lastMessageSentTime = DateTime.now();
       });
+      
+      // If we're offline, we need to refresh the messages list explicitly
+      // since the realtime subscription won't work
+      if (_isOffline) {
+        await _fetchMessages();
+      }
     } else {
       _showMessage('Failed to send message. Please try again.');
     }
@@ -255,8 +265,11 @@ class _HomePageState extends State<HomePage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Chip(
-                    label: const Text('OFFLINE', 
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                    label: Text(
+                      _localMessageCount > 0 
+                          ? 'OFFLINE ($_localMessageCount)' 
+                          : 'OFFLINE',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                     backgroundColor: Theme.of(context).colorScheme.errorContainer,
                     labelStyle: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
