@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "fi.designleaders.wall"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = project.findProperty("android.ndkVersion") as String? ?: "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

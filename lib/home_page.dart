@@ -34,11 +34,12 @@ class _HomePageState extends State<HomePage> {
     // Set up real-time listener for new messages
     _messagesChannel = Supabase.instance.client
         .channel('public:messages')
-        .on(
-          RealtimeListenTypes.postgresChanges,
-          ChannelFilter(event: 'INSERT', schema: 'public', table: 'messages'),
-          (payload, [ref]) {
-            final newMessage = payload['new'] as Map<String, dynamic>;
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'messages',
+          callback: (payload) {
+            final newMessage = payload.newRecord;
             setState(() {
               _messages.add(newMessage);
               _sortMessages();
