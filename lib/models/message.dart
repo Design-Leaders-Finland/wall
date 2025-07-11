@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class Message {
   final String content;
   final String userId;
@@ -34,6 +36,12 @@ class Message {
     return DateTime.now().difference(createdAt).inMinutes >= 5;
   }
   
-  // Get short user ID for display
-  String get shortUserId => userId.length > 8 ? userId.substring(0, 8) : userId;
+  // Get short user ID display name
+  String get shortUserId => "ANONYMOUS USER";
+  
+  // Format the time based on the device's locale
+  String formatTime(String? locale) {
+    final formatter = DateFormat.yMd(locale).add_Hm();
+    return formatter.format(createdAt.toLocal());
+  }
 }

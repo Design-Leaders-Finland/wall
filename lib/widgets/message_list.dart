@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../models/message.dart';
+import 'message_list_item.dart';
 
 class MessageList extends StatelessWidget {
   final List<Message> messages;
@@ -13,17 +13,11 @@ class MessageList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      reverse: true, // Show latest messages at the bottom
+      reverse: false, // Show oldest messages at the top as in the design
       itemCount: messages.length,
       itemBuilder: (context, index) {
-        // Display in reverse order (newest at bottom)
-        final message = messages[messages.length - 1 - index];
-        final formattedTime = DateFormat('HH:mm').format(message.createdAt.toLocal());
-        
-        return ListTile(
-          title: Text(message.content),
-          subtitle: Text('$formattedTime - ${message.shortUserId}'),
-        );
+        final message = messages[index];
+        return MessageListItem(message: message);
       },
     );
   }

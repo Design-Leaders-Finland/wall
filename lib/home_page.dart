@@ -120,15 +120,37 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ephemeral Chat'),
+        title: const Text('WALL', 
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              // Menu functionality would go here
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                // Line under app bar
+                Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Theme.of(context).colorScheme.outlineVariant.withAlpha(128),
+                ),
+                // Message list
                 Expanded(
                   child: MessageList(messages: visibleMessages),
                 ),
+                // Message input at bottom
                 MessageInput(onSendMessage: _handleSendMessage),
               ],
             ),
