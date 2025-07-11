@@ -10,3 +10,5 @@ flutter build apk --release
 # Install it to Android emulator
 flutter install
 ```
+
+Icons generated with https://www.appiconly.com/

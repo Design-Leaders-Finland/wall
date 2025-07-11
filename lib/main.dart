@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wall/home_page.dart';
 import 'package:wall/utils/logger.dart';
 import 'package:wall/widgets/app_startup_handler.dart';
+import 'package:wall/widgets/theme_aware_icon_handler.dart';
 
 void main() {
   // Ensure Flutter binding is initialized
@@ -20,28 +21,30 @@ class MyAppWithSplash extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'WALL',
-      // Use light theme
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.light,
+    return ThemeAwareIconHandler(
+      child: MaterialApp(
+        title: 'WALL',
+        // Use light theme
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blue,
+            brightness: Brightness.light,
+          ),
+          useMaterial3: true,
         ),
-        useMaterial3: true,
-      ),
-      // Use dark theme
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.dark,
+        // Use dark theme
+        darkTheme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blue,
+            brightness: Brightness.dark,
+          ),
+          useMaterial3: true,
         ),
-        useMaterial3: true,
-      ),
-      // Follow the system theme
-      themeMode: ThemeMode.system,
-      home: AppStartupHandler(
-        appBuilder: () => const MyApp(),
+        // Follow the system theme
+        themeMode: ThemeMode.system,
+        home: AppStartupHandler(
+          appBuilder: () => const MyApp(),
+        ),
       ),
     );
   }
@@ -53,27 +56,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'WALL',
-      // Use light theme
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.light,
+    return ThemeAwareIconHandler(
+      child: MaterialApp(
+        title: 'WALL',
+        // Use light theme
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blue,
+            brightness: Brightness.light,
+          ),
+          useMaterial3: true,
         ),
-        useMaterial3: true,
-      ),
-      // Use dark theme
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.dark,
+        // Use dark theme
+        darkTheme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blue,
+            brightness: Brightness.dark,
+          ),
+          useMaterial3: true,
         ),
-        useMaterial3: true,
+        // Follow the system theme
+        themeMode: ThemeMode.system,
+        home: const HomePage(), // Your chat UI
       ),
-      // Follow the system theme
-      themeMode: ThemeMode.system,
-      home: const HomePage(), // Your chat UI
     );
   }
 }
