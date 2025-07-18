@@ -45,12 +45,12 @@ class _HomePageState extends State<HomePage> {
     });
     
     try {
-      // Sign in anonymously
+      // Attempt authentication (may fall back to guest mode)
       final user = await _authService.signInAnonymously();
       
-      // Even if authentication fails (user is null), we'll try to proceed in read-only mode
       if (user == null) {
-        AppLogger.warning('No user returned after sign in attempt. Continuing in read-only mode.');
+        AppLogger.info('Running in guest mode - messages will be stored locally only');
+        _showMessage('Running in guest mode. Your messages are stored locally.');
       } else {
         AppLogger.info('Authentication successful for user: ${user.id}');
       }
@@ -63,10 +63,10 @@ class _HomePageState extends State<HomePage> {
         });
       };
       
-      // Initialize realtime subscription (even if auth failed)
+      // Initialize realtime subscription (even in guest mode to receive messages from others)
       _messageService.initRealtimeSubscription();
       
-      // Fetch initial messages (even if auth failed)
+      // Fetch initial messages
       await _fetchMessages();
       
       setState(() {
@@ -74,7 +74,7 @@ class _HomePageState extends State<HomePage> {
         _isOffline = !_messageService.isOnline;
       });
       
-      if (_isOffline) {
+      if (_isOffline && user != null) {
         _showMessage('Working in offline mode. Messages are stored locally.');
       }
     } on AuthFailedException catch (e) {
@@ -169,27 +169,19 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _handleSendMessage(String content) async {
     final user = _authService.getCurrentUser();
+    String userId;
     
     if (user == null) {
-      // Try to sign in again if no user is available
-      AppLogger.info('No user found when trying to send message. Attempting to sign in...');
-      try {
-        final newUser = await _authService.signInAnonymously();
-        if (newUser == null) {
-          _showMessage('Unable to authenticate. Try restarting the app or check your internet connection.');
-          return;
-        }
-        
-        // Continue with the newly signed-in user
-        return _processSendMessage(content, newUser.id);
-      } catch (e) {
-        AppLogger.error('Failed to sign in when trying to send message', e);
-        _showMessage('Authentication failed. Please restart the app.');
-        return;
-      }
+      // Use guest mode - no server authentication required
+      AppLogger.info('No authenticated user, using guest mode for message sending');
+      userId = _authService.getGuestUserId();
+      AppLogger.info('Sending message as guest user: $userId');
+    } else {
+      userId = user.id;
+      AppLogger.info('Sending message as authenticated user: $userId');
     }
 
-    return _processSendMessage(content, user.id);
+    return _processSendMessage(content, userId);
   }
   
   // Helper method to process the message sending after authentication check

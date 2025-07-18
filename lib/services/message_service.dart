@@ -213,8 +213,11 @@ class MessageService {
     );
     
     try {
-      if (_isOnline) {
-        // Try to insert into database
+      // Check if user is a guest user (starts with 'guest_')
+      final isGuestUser = userId.startsWith('guest_');
+      
+      if (_isOnline && !isGuestUser) {
+        // Try to insert into database only for authenticated users
         final messageToSend = {
           'content': message.content,
           'user_id': message.userId,
@@ -230,8 +233,13 @@ class MessageService {
         AppLogger.info('Message sent and stored both remotely and locally');
         return true;
       } else {
-        // If we know we're offline, just store locally as current user's message
-        AppLogger.info('Offline mode: Storing message locally only');
+        // For guest users or when offline, store locally only
+        if (isGuestUser) {
+          AppLogger.info('Guest user: Storing message locally only');
+        } else {
+          AppLogger.info('Offline mode: Storing message locally only');
+        }
+        
         final success = await LocalStorageService.addCurrentUserMessage(message);
         
         // If local storage succeeds, trigger the message callback
