@@ -6,10 +6,7 @@ import '../widgets/splash_screen.dart';
 class AppStartupHandler extends StatefulWidget {
   final Widget Function() appBuilder;
 
-  const AppStartupHandler({
-    super.key,
-    required this.appBuilder,
-  });
+  const AppStartupHandler({super.key, required this.appBuilder});
 
   @override
   State<AppStartupHandler> createState() => _AppStartupHandlerState();
@@ -93,7 +90,7 @@ class _AppStartupHandlerState extends State<AppStartupHandler> {
                 Text(
                   _error.toString(),
                   style: TextStyle(
-                    fontSize: 14, 
+                    fontSize: 14,
                     color: Theme.of(context).colorScheme.error,
                   ),
                   textAlign: TextAlign.center,

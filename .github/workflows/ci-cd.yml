@@ -30,7 +30,7 @@ jobs:
       run: flutter pub get
       
     - name: Check for outdated packages
-      run: flutter pub outdated --mode=null-safety
+      run: flutter pub outdated
       continue-on-error: true
 
     - name: Check for security vulnerabilities

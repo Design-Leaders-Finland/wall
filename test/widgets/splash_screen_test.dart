@@ -6,35 +6,27 @@ void main() {
   group('SplashScreen Widget Tests', () {
     testWidgets('should display WALL text', (WidgetTester tester) async {
       // Build the SplashScreen widget
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: SplashScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: SplashScreen()));
 
       // Verify that the WALL text is displayed
       expect(find.text('WALL'), findsOneWidget);
     });
 
-    testWidgets('should display circular progress indicator', (WidgetTester tester) async {
+    testWidgets('should display circular progress indicator', (
+      WidgetTester tester,
+    ) async {
       // Build the SplashScreen widget
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: SplashScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: SplashScreen()));
 
       // Verify that a CircularProgressIndicator is present
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('should have proper layout structure', (WidgetTester tester) async {
+    testWidgets('should have proper layout structure', (
+      WidgetTester tester,
+    ) async {
       // Build the SplashScreen widget
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: SplashScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: SplashScreen()));
 
       // Verify the main structure
       expect(find.byType(Scaffold), findsOneWidget);
@@ -45,7 +37,9 @@ void main() {
       expect(find.byType(Center), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('should use theme colors appropriately', (WidgetTester tester) async {
+    testWidgets('should use theme colors appropriately', (
+      WidgetTester tester,
+    ) async {
       const testColorScheme = ColorScheme.light(
         primary: Colors.blue,
         onPrimary: Colors.white,
@@ -78,7 +72,9 @@ void main() {
       expect(decoration.shape, equals(BoxShape.circle));
     });
 
-    testWidgets('should have correct text styling', (WidgetTester tester) async {
+    testWidgets('should have correct text styling', (
+      WidgetTester tester,
+    ) async {
       const testColorScheme = ColorScheme.light(
         primary: Colors.blue,
         onPrimary: Colors.white,
@@ -105,10 +101,7 @@ void main() {
     testWidgets('should work with dark theme', (WidgetTester tester) async {
       // Build the SplashScreen widget with dark theme
       await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData.dark(),
-          home: const SplashScreen(),
-        ),
+        MaterialApp(theme: ThemeData.dark(), home: const SplashScreen()),
       );
 
       // Verify that the widget builds without errors
@@ -117,13 +110,11 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('should have proper widget dimensions', (WidgetTester tester) async {
+    testWidgets('should have proper widget dimensions', (
+      WidgetTester tester,
+    ) async {
       // Build the SplashScreen widget
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: SplashScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: SplashScreen()));
 
       // Get the Container widget
       final container = tester.widget<Container>(
@@ -138,13 +129,11 @@ void main() {
       expect(container.constraints?.maxHeight, equals(150));
     });
 
-    testWidgets('should have proper spacing between elements', (WidgetTester tester) async {
+    testWidgets('should have proper spacing between elements', (
+      WidgetTester tester,
+    ) async {
       // Build the SplashScreen widget
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: SplashScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: SplashScreen()));
 
       // Find the SizedBox widget
       final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
@@ -155,11 +144,7 @@ void main() {
 
     testWidgets('should center content properly', (WidgetTester tester) async {
       // Build the SplashScreen widget
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: SplashScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: SplashScreen()));
 
       // Find the Column widget
       final column = tester.widget<Column>(find.byType(Column));

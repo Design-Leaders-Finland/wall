@@ -7,10 +7,10 @@ import 'package:wall/widgets/theme_aware_icon_handler.dart';
 void main() {
   // Ensure Flutter binding is initialized
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize the logger
   AppLogger.setup();
-  
+
   // Run the app with the splash screen immediately
   runApp(const MyAppWithSplash());
 }
@@ -42,9 +42,7 @@ class MyAppWithSplash extends StatelessWidget {
         ),
         // Follow the system theme
         themeMode: ThemeMode.system,
-        home: AppStartupHandler(
-          appBuilder: () => const MyApp(),
-        ),
+        home: AppStartupHandler(appBuilder: () => const MyApp()),
       ),
     );
   }

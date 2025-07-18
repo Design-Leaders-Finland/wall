@@ -17,7 +17,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final AuthService _authService = AuthService();
   final MessageService _messageService = MessageService();
-  
+
   List<Message> _messages = [];
   DateTime? _lastMessageSentTime;
   bool _isLoading = true;
@@ -31,11 +31,11 @@ class _HomePageState extends State<HomePage> {
   // Track auth failure state
   bool _authFailed = false;
   String _authErrorMessage = '';
-  
+
   // Track connectivity state
   bool _isOffline = false;
   int _localMessageCount = 0;
-  
+
   Future<void> _initialize() async {
     setState(() {
       _isLoading = true;
@@ -43,18 +43,22 @@ class _HomePageState extends State<HomePage> {
       _authErrorMessage = '';
       _isOffline = false;
     });
-    
+
     try {
       // Attempt authentication (may fall back to guest mode)
       final user = await _authService.signInAnonymously();
-      
+
       if (user == null) {
-        AppLogger.info('Running in guest mode - messages will be stored locally only');
-        _showMessage('Running in guest mode. Your messages are stored locally.');
+        AppLogger.info(
+          'Running in guest mode - messages will be stored locally only',
+        );
+        _showMessage(
+          'Running in guest mode. Your messages are stored locally.',
+        );
       } else {
         AppLogger.info('Authentication successful for user: ${user.id}');
       }
-      
+
       // Setup message callback
       _messageService.onNewMessage = (newMessage) {
         setState(() {
@@ -62,40 +66,42 @@ class _HomePageState extends State<HomePage> {
           _sortMessages();
         });
       };
-      
+
       // Initialize realtime subscription (even in guest mode to receive messages from others)
       _messageService.initRealtimeSubscription();
-      
+
       // Fetch initial messages
       await _fetchMessages();
-      
+
       setState(() {
         _isLoading = false;
         _isOffline = !_messageService.isOnline;
       });
-      
+
       if (_isOffline && user != null) {
         _showMessage('Working in offline mode. Messages are stored locally.');
       }
     } on AuthFailedException catch (e) {
       AppLogger.error('Authentication exception caught in HomePage', e);
-      
+
       // Try to continue in read-only mode despite auth failure
       try {
         // Initialize realtime subscription anyway
         _messageService.initRealtimeSubscription();
-        
+
         // Fetch initial messages - will use local storage if online fetch fails
         await _fetchMessages();
-        
+
         setState(() {
           _isLoading = false;
           _isOffline = true; // Authentication failed, so we're in offline mode
           // Don't show auth failure screen if we have local messages
           _authFailed = false;
         });
-        
-        _showMessage('Authentication failed. Working in offline mode with local data.');
+
+        _showMessage(
+          'Authentication failed. Working in offline mode with local data.',
+        );
       } catch (innerError) {
         // Only if both auth and data fetching fail, show the error screen
         setState(() {
@@ -106,18 +112,20 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       AppLogger.error('Unexpected error during initialization', e);
-      
+
       // Try to fetch local messages even if initialization failed
       try {
         await _fetchMessages();
-        
+
         setState(() {
           _isLoading = false;
           _isOffline = true;
           _authFailed = false; // Don't show error if we have local messages
         });
-        
-        _showMessage('Connection error. Working in offline mode with local data.');
+
+        _showMessage(
+          'Connection error. Working in offline mode with local data.',
+        );
       } catch (localError) {
         // If even local storage fails, show the error screen
         setState(() {
@@ -132,7 +140,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _fetchMessages() async {
     final messages = await _messageService.fetchMessages();
     final localMessages = messages.where((m) => m.isFromCurrentUser).toList();
-    
+
     setState(() {
       _messages = messages;
       _sortMessages();
@@ -140,18 +148,20 @@ class _HomePageState extends State<HomePage> {
       _localMessageCount = localMessages.length;
     });
   }
-  
+
   // Try to reconnect to the server
   Future<void> _tryReconnect() async {
     if (!_isOffline) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       final success = await _messageService.tryReconnect();
       if (success) {
         await _fetchMessages();
-        _showMessage('Reconnected successfully. Your local messages will sync when you send a new message.');
+        _showMessage(
+          'Reconnected successfully. Your local messages will sync when you send a new message.',
+        );
       } else {
         _showMessage('Still offline. Your messages are saved locally.');
       }
@@ -170,10 +180,12 @@ class _HomePageState extends State<HomePage> {
   Future<void> _handleSendMessage(String content) async {
     final user = _authService.getCurrentUser();
     String userId;
-    
+
     if (user == null) {
       // Use guest mode - no server authentication required
-      AppLogger.info('No authenticated user, using guest mode for message sending');
+      AppLogger.info(
+        'No authenticated user, using guest mode for message sending',
+      );
       userId = _authService.getGuestUserId();
       AppLogger.info('Sending message as guest user: $userId');
     } else {
@@ -183,15 +195,18 @@ class _HomePageState extends State<HomePage> {
 
     return _processSendMessage(content, userId);
   }
-  
+
   // Helper method to process the message sending after authentication check
   Future<void> _processSendMessage(String content, String userId) async {
     // Rate limit check
     if (_lastMessageSentTime != null) {
       final Duration elapsed = DateTime.now().difference(_lastMessageSentTime!);
       if (elapsed.inMinutes < MessageService.messageCooldownMinutes) {
-        final int remainingSeconds = (MessageService.messageCooldownMinutes * 60) - elapsed.inSeconds;
-        _showMessage('Please wait $remainingSeconds seconds before sending another message.');
+        final int remainingSeconds =
+            (MessageService.messageCooldownMinutes * 60) - elapsed.inSeconds;
+        _showMessage(
+          'Please wait $remainingSeconds seconds before sending another message.',
+        );
         return;
       }
     }
@@ -208,7 +223,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _lastMessageSentTime = DateTime.now();
       });
-      
+
       // If we're offline, we need to refresh the messages list explicitly
       // since the realtime subscription won't work
       if (_isOffline) {
@@ -221,10 +236,7 @@ class _HomePageState extends State<HomePage> {
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-      ),
+      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
     );
   }
 
@@ -241,11 +253,9 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('WALL', 
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
+        title: const Text(
+          'WALL',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
         centerTitle: false,
         actions: [
@@ -258,15 +268,23 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Chip(
                     label: Text(
-                      _localMessageCount > 0 
-                          ? 'OFFLINE ($_localMessageCount)' 
+                      _localMessageCount > 0
+                          ? 'OFFLINE ($_localMessageCount)'
                           : 'OFFLINE',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                    labelStyle: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
-                    avatar: Icon(Icons.cloud_off, 
-                      size: 16, 
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.errorContainer,
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                    avatar: Icon(
+                      Icons.cloud_off,
+                      size: 16,
                       color: Theme.of(context).colorScheme.onErrorContainer,
                     ),
                     visualDensity: VisualDensity.compact,
@@ -290,17 +308,19 @@ class _HomePageState extends State<HomePage> {
       body: _buildBody(context, visibleMessages),
     );
   }
-  
+
   Widget _buildBody(BuildContext context, List<Message> visibleMessages) {
     // Show loading indicator
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     // Show auth error UI
     if (_authFailed) {
       return Container(
-        color: Theme.of(context).colorScheme.errorContainer.withAlpha(13), // ~5% opacity
+        color: Theme.of(
+          context,
+        ).colorScheme.errorContainer.withAlpha(13), // ~5% opacity
         child: Center(
           child: Card(
             margin: const EdgeInsets.all(24.0),
@@ -360,7 +380,10 @@ class _HomePageState extends State<HomePage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -370,7 +393,7 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     }
-    
+
     // Show normal UI when authenticated
     return Column(
       children: [
@@ -381,9 +404,7 @@ class _HomePageState extends State<HomePage> {
           color: Theme.of(context).colorScheme.outlineVariant.withAlpha(128),
         ),
         // Message list
-        Expanded(
-          child: MessageList(messages: visibleMessages),
-        ),
+        Expanded(child: MessageList(messages: visibleMessages)),
         // Message input at bottom
         MessageInput(onSendMessage: _handleSendMessage),
       ],

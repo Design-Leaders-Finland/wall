@@ -131,14 +131,14 @@ void main() {
     group('Time Formatting', () {
       test('should format time with default locale', () {
         final formattedTime = testMessage.formatTime(null);
-        
+
         expect(formattedTime, isA<String>());
         expect(formattedTime.isNotEmpty, isTrue);
       });
 
       test('should format time with default locale', () {
         final formattedTime = testMessage.formatTime(null);
-        
+
         expect(formattedTime, isA<String>());
         expect(formattedTime.isNotEmpty, isTrue);
       });
@@ -146,7 +146,7 @@ void main() {
       test('should handle different locales', () {
         // Test only default locale to avoid initialization issues
         final timeDefault = testMessage.formatTime(null);
-        
+
         expect(timeDefault, isA<String>());
         expect(timeDefault.isNotEmpty, isTrue);
       });
@@ -185,7 +185,7 @@ void main() {
         );
 
         expect(message.content, equals(specialContent));
-        
+
         final json = message.toJson();
         final recreated = Message.fromJson(json);
         expect(recreated.content, equals(specialContent));

@@ -5,16 +5,14 @@ import 'package:wall/services/app_icon_service.dart';
 class ThemeAwareIconHandler extends StatefulWidget {
   final Widget child;
 
-  const ThemeAwareIconHandler({
-    super.key,
-    required this.child,
-  });
+  const ThemeAwareIconHandler({super.key, required this.child});
 
   @override
   State<ThemeAwareIconHandler> createState() => _ThemeAwareIconHandlerState();
 }
 
-class _ThemeAwareIconHandlerState extends State<ThemeAwareIconHandler> with WidgetsBindingObserver {
+class _ThemeAwareIconHandlerState extends State<ThemeAwareIconHandler>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();

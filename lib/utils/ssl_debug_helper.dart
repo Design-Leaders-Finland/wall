@@ -7,10 +7,10 @@ class SSLDebugHelper {
   /// Show SSL certificate information in debug mode
   static Future<void> showSSLInfo(BuildContext context) async {
     if (!kDebugMode) return;
-    
+
     try {
       final certInfo = await SSLCertificateService.getCertificateInfo();
-      
+
       if (context.mounted) {
         showDialog(
           context: context,
@@ -27,10 +27,16 @@ class SSLDebugHelper {
                     Text('Has BEGIN marker: ${certInfo['hasBeginMarker']}'),
                     Text('Has END marker: ${certInfo['hasEndMarker']}'),
                     const SizedBox(height: 8),
-                    const Text('Preview:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Preview:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     Text(
                       certInfo['preview'],
-                      style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                      ),
                     ),
                   ] else ...[
                     Text('Error: ${certInfo['error']}'),
@@ -58,13 +64,13 @@ class SSLDebugHelper {
       AppLogger.error('Error showing SSL info', e);
     }
   }
-  
+
   /// Test SSL connection and show results
   static Future<void> _testSSLConnection(BuildContext context) async {
     try {
       const url = 'https://vncfwjhduqhevwjspnny.supabase.co';
       final success = await SSLCertificateService.testSSLConnection(url);
-      
+
       if (context.mounted) {
         showDialog(
           context: context,
@@ -80,9 +86,9 @@ class SSLDebugHelper {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  success 
-                    ? 'SSL connection successful!'
-                    : 'SSL connection failed.',
+                  success
+                      ? 'SSL connection successful!'
+                      : 'SSL connection failed.',
                   style: TextStyle(
                     color: success ? Colors.green : Colors.red,
                     fontWeight: FontWeight.bold,

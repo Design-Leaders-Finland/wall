@@ -4,30 +4,27 @@ import '../models/message.dart';
 class MessageListItem extends StatelessWidget {
   final Message message;
 
-  const MessageListItem({
-    super.key,
-    required this.message,
-  });
+  const MessageListItem({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
     final formattedTime = message.formatTime(locale);
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     // Set colors based on whether the message is from current user
-    final containerColor = message.isFromCurrentUser 
-        ? colorScheme.primaryContainer.withAlpha(76)  // 0.3 opacity is approximately 76/255
+    final containerColor = message.isFromCurrentUser
+        ? colorScheme.primaryContainer.withAlpha(
+            76,
+          ) // 0.3 opacity is approximately 76/255
         : Colors.transparent;
-    
-    final userName = message.isFromCurrentUser 
-        ? "YOU" 
-        : message.shortUserId;
-    
-    final userNameColor = message.isFromCurrentUser 
+
+    final userName = message.isFromCurrentUser ? "YOU" : message.shortUserId;
+
+    final userNameColor = message.isFromCurrentUser
         ? colorScheme.primary
         : colorScheme.onSurface;
-        
+
     return Column(
       children: [
         Container(
@@ -49,7 +46,7 @@ class MessageListItem extends StatelessWidget {
                           color: userNameColor,
                         ),
                       ),
-                      if (message.isFromCurrentUser) 
+                      if (message.isFromCurrentUser)
                         Padding(
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Icon(
@@ -75,7 +72,9 @@ class MessageListItem extends StatelessWidget {
                 message.content,
                 style: TextStyle(
                   color: colorScheme.onSurface,
-                  fontWeight: message.isFromCurrentUser ? FontWeight.w500 : FontWeight.normal,
+                  fontWeight: message.isFromCurrentUser
+                      ? FontWeight.w500
+                      : FontWeight.normal,
                 ),
               ),
             ],
