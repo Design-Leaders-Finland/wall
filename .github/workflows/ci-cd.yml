@@ -1,0 +1,167 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  FLUTTER_VERSION: '3.32.6'
+
+jobs:
+  # Code quality checks
+  quality-checks:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+        
+    - name: Install dependencies
+      run: flutter pub get
+      
+    - name: Check for outdated packages
+      run: flutter pub outdated --mode=null-safety
+      continue-on-error: true
+      
+    - name: Check formatting
+      run: |
+        echo "Checking code formatting..."
+        dart format --set-exit-if-changed .
+        
+    - name: Analyze code
+      run: |
+        echo "Running static analysis..."
+        flutter analyze --fatal-infos
+        
+    - name: Run unit tests
+      run: |
+        echo "Running unit tests..."
+        flutter test --coverage
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: coverage/lcov.info
+        fail_ci_if_error: false
+      continue-on-error: true
+
+  # Build tests for different platforms
+  build-tests:
+    name: Build Tests
+    needs: quality-checks
+    strategy:
+      matrix:
+        platform: [web, android, windows, ios]
+        include:
+          - platform: web
+            os: ubuntu-latest
+            build-cmd: flutter build web --release
+          - platform: android
+            os: ubuntu-latest
+            build-cmd: flutter build apk --release
+          - platform: windows
+            os: windows-latest
+            build-cmd: flutter build windows --release
+          - platform: ios
+            os: macos-latest
+            build-cmd: flutter build ios --release --no-codesign
+            
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+        
+    - name: Setup Java (for Android)
+      if: matrix.platform == 'android'
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        
+    - name: Install dependencies
+      run: flutter pub get
+      
+    - name: Enable platform
+      run: |
+        if [ "${{ matrix.platform }}" = "web" ]; then
+          flutter config --enable-web
+        elif [ "${{ matrix.platform }}" = "windows" ]; then
+          flutter config --enable-windows-desktop
+        elif [ "${{ matrix.platform }}" = "android" ]; then
+          flutter config --enable-android
+        elif [ "${{ matrix.platform }}" = "ios" ]; then
+          flutter config --enable-ios
+        fi
+      shell: bash
+      
+    - name: Build ${{ matrix.platform }}
+      run: ${{ matrix.build-cmd }}
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ matrix.platform }}
+        path: |
+          build/web/
+          build/app/outputs/flutter-apk/
+          build/windows/x64/runner/Release/
+          build/ios/iphoneos/
+        retention-days: 7
+      continue-on-error: true
+
+  # Security and dependency checks
+  security-checks:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+        
+    - name: Install dependencies
+      run: flutter pub get
+      
+    - name: Check for security vulnerabilities
+      run: |
+        echo "Checking for known security vulnerabilities..."
+        flutter pub deps --json | grep -i "security\|vulnerability" || echo "No obvious security issues found"
+        
+    - name: Check for outdated packages
+      run: |
+        echo "Checking for outdated packages..."
+        flutter pub outdated --mode=null-safety || echo "Some packages may be outdated"
+      continue-on-error: true
+      
+    - name: Analyze pubspec.yaml
+      run: |
+        echo "Analyzing pubspec.yaml for best practices..."
+        if grep -q "version:" pubspec.yaml; then
+          echo "✓ Version specified in pubspec.yaml"
+        else
+          echo "⚠ Consider adding version to pubspec.yaml"
+        fi

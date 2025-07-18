@@ -1,0 +1,177 @@
+name: Release Build
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release-build:
+    name: Release Build & Deploy
+    strategy:
+      matrix:
+        include:
+          - platform: android-web
+            runner: ubuntu-latest
+          - platform: ios
+            runner: macos-latest
+    runs-on: ${{ matrix.runner }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Extract version from tag
+      id: version
+      run: |
+        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "APP_VERSION=color-surface-v$VERSION" >> $GITHUB_OUTPUT
+        else
+          echo "VERSION=dev" >> $GITHUB_OUTPUT
+          echo "APP_VERSION=color-surface-dev" >> $GITHUB_OUTPUT
+        fi
+      shell: bash
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.32.6'
+        channel: 'stable'
+        cache: true
+        
+    - name: Setup Java for Android
+      if: matrix.platform == 'android-web'
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        
+    - name: Install dependencies
+      run: flutter pub get
+      
+    - name: Run full test suite
+      run: flutter test --coverage
+      
+    - name: Build Android APK
+      if: matrix.platform == 'android-web'
+      run: |
+        flutter build apk --release
+        echo "Android APK build completed, checking output:"
+        ls -la build/app/outputs/flutter-apk/ || echo "Android APK directory not found"
+        # Rename APK with app name and version
+        if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/${{ steps.version.outputs.APP_VERSION }}.apk
+        fi
+      shell: bash
+      
+    - name: Build Android App Bundle
+      if: matrix.platform == 'android-web'
+      run: |
+        flutter build appbundle --release
+        echo "Android App Bundle build completed, checking output:"
+        ls -la build/app/outputs/bundle/release/ || echo "Android AAB directory not found"
+        # Rename AAB with app name and version
+        if [ -f "build/app/outputs/bundle/release/app-release.aab" ]; then
+          mv build/app/outputs/bundle/release/app-release.aab build/app/outputs/bundle/release/${{ steps.version.outputs.APP_VERSION }}.aab
+        fi
+      shell: bash
+      
+    - name: Build Web
+      if: matrix.platform == 'android-web'
+      run: |
+        flutter config --enable-web
+        flutter build web --release
+        # Create a zip file for web build with app name and version
+        cd build
+        zip -r ${{ steps.version.outputs.APP_VERSION }}-web.zip web/
+        cd ..
+      shell: bash
+        
+    - name: Build iOS (without signing)
+      if: matrix.platform == 'ios'
+      run: |
+        flutter build ios --release --no-codesign
+        echo "iOS build completed, checking output:"
+        ls -la build/ios/iphoneos/ || echo "iOS build directory not found"
+        # Create a zip file for iOS build with app name and version
+        cd build/ios
+        zip -r ${{ steps.version.outputs.APP_VERSION }}-ios.zip iphoneos/
+        cd ../..
+      shell: bash
+        
+    - name: Upload Android APK
+      if: matrix.platform == 'android-web'
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-apk
+        path: build/app/outputs/flutter-apk/${{ steps.version.outputs.APP_VERSION }}.apk
+        
+    - name: Upload Android App Bundle
+      if: matrix.platform == 'android-web'
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-aab
+        path: build/app/outputs/bundle/release/${{ steps.version.outputs.APP_VERSION }}.aab
+        
+    - name: Upload Web Build
+      if: matrix.platform == 'android-web'
+      uses: actions/upload-artifact@v4
+      with:
+        name: web-build
+        path: build/${{ steps.version.outputs.APP_VERSION }}-web.zip
+        
+    - name: Upload iOS Build
+      if: matrix.platform == 'ios'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-build
+        path: build/ios/${{ steps.version.outputs.APP_VERSION }}-ios.zip
+      continue-on-error: true
+
+  create-release:
+    name: Create Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: release-build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Download Android APK
+      uses: actions/download-artifact@v4
+      with:
+        name: android-apk
+        path: ./artifacts/
+      continue-on-error: true
+        
+    - name: Download Android App Bundle
+      uses: actions/download-artifact@v4
+      with:
+        name: android-aab
+        path: ./artifacts/
+      continue-on-error: true
+        
+    - name: Download iOS Build
+      uses: actions/download-artifact@v4
+      with:
+        name: ios-build
+        path: ./artifacts/
+      continue-on-error: true
+        
+    - name: List downloaded artifacts
+      run: |
+        echo "Downloaded artifacts:"
+        find ./artifacts -type f -name "*" 2>/dev/null || echo "No artifacts found"
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./artifacts/*
+        generate_release_notes: true
+        fail_on_unmatched_files: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
