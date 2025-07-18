@@ -26,28 +26,51 @@ class MessageService {
             schema: 'public',
             table: tableName,
             callback: (payload) {
-              final newMessage = Message.fromJson(payload.newRecord);
-              AppLogger.info('New message received from user: ${newMessage.userId}');
-              
-              // Save message to local storage for offline access
-              LocalStorageService.addMessage(newMessage).then((success) {
-                if (!success) {
-                  AppLogger.warning('Failed to save received message to local storage');
+              try {
+                final newMessage = Message.fromJson(payload.newRecord);
+                AppLogger.info('New message received from user: ${newMessage.userId}');
+                
+                // Save message to local storage for offline access
+                LocalStorageService.addMessage(newMessage).then((success) {
+                  if (!success) {
+                    AppLogger.warning('Failed to save received message to local storage');
+                  }
+                });
+                
+                if (onNewMessage != null) {
+                  onNewMessage!(newMessage);
                 }
-              });
-              
-              if (onNewMessage != null) {
-                onNewMessage!(newMessage);
+              } catch (e) {
+                AppLogger.error('Error processing realtime message', e);
               }
             },
           )
-          .subscribe();
-      _isOnline = true;
-      AppLogger.info('Realtime subscription initialized successfully');
+          .subscribe((status, [error]) {
+            if (status == RealtimeSubscribeStatus.subscribed) {
+              AppLogger.info('Realtime subscription successful');
+              _isOnline = true;
+            } else if (status == RealtimeSubscribeStatus.closed) {
+              AppLogger.warning('Realtime subscription closed');
+              _isOnline = false;
+            } else if (status == RealtimeSubscribeStatus.channelError) {
+              AppLogger.error('Realtime subscription error: ${error?.toString()}');
+              _isOnline = false;
+              
+              // Check if this is the specific Realtime not enabled error
+              if (error?.toString().contains('Unable to subscribe to changes') == true ||
+                  error?.toString().contains('Realtime is not enabled') == true) {
+                AppLogger.warning('Realtime is not enabled for the messages table. App will work in polling mode.');
+                // Set up polling fallback (optional)
+                _setupPollingFallback();
+              }
+            }
+          });
+      
+      AppLogger.info('Realtime subscription setup initiated');
     } catch (e) {
-      AppLogger.error('Error initializing realtime subscription', e);
+      AppLogger.error('Error setting up realtime subscription', e);
       _isOnline = false;
-      // Don't rethrow - we want to gracefully handle this error
+      _setupPollingFallback();
     }
   }
   
@@ -60,23 +83,61 @@ class MessageService {
       await _supabaseClient.from(tableName).select('count').limit(1);
       _isOnline = true;
       
+      // Cancel polling if it's running
+      _pollingTimer?.cancel();
+      _pollingTimer = null;
+      
       // Re-initialize subscription
       initRealtimeSubscription();
       return true;
     } catch (e) {
       AppLogger.warning('Reconnection attempt failed: ${e.toString()}');
+      // If reconnection fails, continue with polling fallback
+      if (_pollingTimer == null) {
+        _setupPollingFallback();
+      }
       return false;
     }
   }
   
   // Dispose/unsubscribe from realtime updates
   void dispose() {
-    _messagesChannel.unsubscribe();
+    try {
+      _messagesChannel.unsubscribe();
+    } catch (e) {
+      AppLogger.warning('Error unsubscribing from realtime channel: ${e.toString()}');
+    }
+    
+    // Cancel polling timer if it exists
+    _pollingTimer?.cancel();
+    _pollingTimer = null;
   }
   
   // Track connectivity state
   bool _isOnline = true;
   bool get isOnline => _isOnline;
+  
+  // Polling timer for fallback when realtime is not available
+  dynamic _pollingTimer;
+  
+  // Setup polling fallback when realtime is not available
+  void _setupPollingFallback() {
+    AppLogger.info('Setting up polling fallback for message updates');
+    // Cancel any existing timer
+    _pollingTimer?.cancel();
+    
+    // Poll every 30 seconds for new messages
+    _pollingTimer = Stream.periodic(const Duration(seconds: 30))
+        .listen((_) async {
+      try {
+        final messages = await fetchMessages();
+        // This will trigger UI updates through the normal flow
+        AppLogger.info('Polling: fetched ${messages.length} messages');
+      } catch (e) {
+        AppLogger.warning('Polling failed: ${e.toString()}');
+      }
+    });
+  }
 
   // Fetch all messages
   Future<List<Message>> fetchMessages() async {

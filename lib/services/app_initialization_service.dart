@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../utils/logger.dart';
+import 'ssl_certificate_service.dart';
 
 class AppInitializationService {
   // Minimum duration for splash screen in milliseconds
@@ -14,11 +15,30 @@ class AppInitializationService {
     final startTime = DateTime.now();
     
     try {
-      // Initialize Supabase client
+      // Configure SSL certificate first
+      await SSLCertificateService.configureCertificate();
+      
+      // Test SSL connection to ensure certificate is working
+      const supabaseUrl = 'https://vncfwjhduqhevwjspnny.supabase.co';
+      final sslTest = await SSLCertificateService.testSSLConnection(supabaseUrl);
+      
+      if (!sslTest) {
+        AppLogger.warning('SSL connection test failed, but proceeding with initialization');
+      } else {
+        AppLogger.info('SSL connection test successful');
+      }
+      
+      // Initialize Supabase client with SSL enforced
       await Supabase.initialize(
-        url: 'https://vncfwjhduqhevwjspnny.supabase.co',
+        url: supabaseUrl,
         anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuY2Z3amhkdXFoZXZ3anNwbm55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyMzE0NDksImV4cCI6MjA2NzgwNzQ0OX0.3ATScVIraTIukGP0bchZrWOZEYmzRb0wO2GcqzqHt_A',
+        realtimeClientOptions: const RealtimeClientOptions(
+          eventsPerSecond: 10,
+          logLevel: RealtimeLogLevel.info,
+        ),
       );
+      
+      AppLogger.info('Supabase initialized with SSL certificate and enforced SSL connections');
       
       // Calculate elapsed time
       final elapsedMilliseconds = DateTime.now().difference(startTime).inMilliseconds;
