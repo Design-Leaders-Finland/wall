@@ -33,6 +33,11 @@ jobs:
       run: flutter pub outdated --mode=null-safety
       continue-on-error: true
 
+    - name: Check for security vulnerabilities
+      run: |
+        echo "Checking for known security vulnerabilities..."
+        flutter pub deps --json | grep -i "security\|vulnerability" || echo "No obvious security issues found"
+  
     - name: Check formatting
       run: |
         echo "Checking code formatting..."
@@ -122,42 +127,3 @@ jobs:
           build/ios/iphoneos/
         retention-days: 7
       continue-on-error: true
-
-  # Security and dependency checks
-  security-checks:
-    name: Security Checks
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: ${{ env.FLUTTER_VERSION }}
-        channel: 'stable'
-        cache: true
-        
-    - name: Install dependencies
-      run: flutter pub get
-      
-    - name: Check for security vulnerabilities
-      run: |
-        echo "Checking for known security vulnerabilities..."
-        flutter pub deps --json | grep -i "security\|vulnerability" || echo "No obvious security issues found"
-        
-    - name: Check for outdated packages
-      run: |
-        echo "Checking for outdated packages..."
-        flutter pub outdated --mode=null-safety || echo "Some packages may be outdated"
-      continue-on-error: true
-      
-    - name: Analyze pubspec.yaml
-      run: |
-        echo "Analyzing pubspec.yaml for best practices..."
-        if grep -q "version:" pubspec.yaml; then
-          echo "✓ Version specified in pubspec.yaml"
-        else
-          echo "⚠ Consider adding version to pubspec.yaml"
-        fi
