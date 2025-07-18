@@ -32,7 +32,7 @@ jobs:
     - name: Check for outdated packages
       run: flutter pub outdated --mode=null-safety
       continue-on-error: true
-      
+
     - name: Check formatting
       run: |
         echo "Checking code formatting..."
@@ -48,12 +48,8 @@ jobs:
         echo "Running unit tests..."
         flutter test --coverage
         
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: coverage/lcov.info
-        fail_ci_if_error: false
-      continue-on-error: true
+    - name: Upload coverage to Codacy
+      run: bash <(curl -Ls https://coverage.codacy.com/get.sh)
 
   # Build tests for different platforms
   build-tests:
