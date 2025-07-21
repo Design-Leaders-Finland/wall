@@ -55,6 +55,7 @@ jobs:
         
     - name: Upload coverage to Codacy
       run: bash <(curl -Ls https://coverage.codacy.com/get.sh)
+      continue-on-error: true
 
   # Build tests for different platforms
   build-tests:
