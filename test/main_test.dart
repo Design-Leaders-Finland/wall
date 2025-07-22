@@ -4,7 +4,7 @@ import 'package:wall/main.dart';
 void main() {
   // Temporarily disable main app tests due to Supabase initialization requirements
   // These tests need proper mocking to work in CI environment
-  
+
   group('Main App Tests', () {
     // Simple constructor tests that don't require full widget tree
     test('should create MyApp widget instance', () {
@@ -15,7 +15,7 @@ void main() {
       expect(() => const MyAppWithSplash(), returnsNormally);
     });
   });
-  
+
   // TODO: Re-enable these tests with proper Supabase mocking
   /*
   group('Main App Widget Tests - DISABLED', () {
