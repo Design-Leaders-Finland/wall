@@ -10,7 +10,11 @@ import UIKit
     GeneratedPluginRegistrant.register(with: self)
     
     // Register method channel for icon updates
-    let controller = window?.rootViewController as! FlutterViewController
+    guard let controller = window?.rootViewController as? FlutterViewController else {
+      print("Warning: Could not get FlutterViewController for icon channel setup")
+      return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    }
+    
     let iconChannel = FlutterMethodChannel(
         name: "fi.designleaders.wall/app_icon",
         binaryMessenger: controller.binaryMessenger)

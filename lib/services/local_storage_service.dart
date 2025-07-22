@@ -34,8 +34,15 @@ class LocalStorageService {
         return [];
       }
 
-      final jsonList = jsonDecode(jsonString) as List;
-      final messages = jsonList.map((item) => Message.fromJson(item)).toList();
+      final jsonData = jsonDecode(jsonString);
+      if (jsonData is! List) {
+        AppLogger.error(
+          'Invalid JSON format: expected List but got ${jsonData.runtimeType}',
+        );
+        return [];
+      }
+
+      final messages = jsonData.map((item) => Message.fromJson(item)).toList();
       AppLogger.info('Loaded ${messages.length} messages from local storage');
       return messages;
     } catch (e) {
@@ -103,8 +110,15 @@ class LocalStorageService {
         return [];
       }
 
-      final jsonList = jsonDecode(jsonString) as List;
-      final messages = jsonList.map((item) {
+      final jsonData = jsonDecode(jsonString);
+      if (jsonData is! List) {
+        AppLogger.error(
+          'Invalid JSON format: expected List but got ${jsonData.runtimeType}',
+        );
+        return [];
+      }
+
+      final messages = jsonData.map((item) {
         // Ensure they're marked as current user messages
         final messageMap = Map<String, dynamic>.from(item);
         messageMap['is_from_current_user'] = true;

@@ -15,7 +15,11 @@ class AppDelegate: FlutterAppDelegate {
     super.applicationDidFinishLaunching(notification)
     
     // Register method channel for icon updates
-    let controller = mainFlutterWindow?.contentViewController as! FlutterViewController
+    guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else {
+      print("Warning: Could not get FlutterViewController for icon channel setup")
+      return
+    }
+    
     let iconChannel = FlutterMethodChannel(
         name: "fi.designleaders.wall/app_icon",
         binaryMessenger: controller.engine.binaryMessenger)
