@@ -1,8 +1,7 @@
-name: Release Build
+name: Release tagged version
 
 on:
   push:
-    branches: [ main ]
     tags: [ 'v*' ]
 
 permissions:
@@ -15,7 +14,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - platform: android-web
+          - platform: android
             runner: ubuntu-latest
           - platform: ios
             runner: macos-latest
@@ -46,7 +45,7 @@ jobs:
         cache: true
         
     - name: Setup Java for Android
-      if: matrix.platform == 'android-web'
+      if: matrix.platform == 'android'
       uses: actions/setup-java@v3
       with:
         distribution: 'zulu'
@@ -59,7 +58,7 @@ jobs:
       run: flutter test --coverage
       
     - name: Build Android APK
-      if: matrix.platform == 'android-web'
+      if: matrix.platform == 'android'
       run: |
         flutter build apk --release
         echo "Android APK build completed, checking output:"
@@ -71,7 +70,7 @@ jobs:
       shell: bash
       
     - name: Build Android App Bundle
-      if: matrix.platform == 'android-web'
+      if: matrix.platform == 'android'
       run: |
         flutter build appbundle --release
         echo "Android App Bundle build completed, checking output:"
@@ -83,7 +82,7 @@ jobs:
       shell: bash
       
     - name: Build Web
-      if: matrix.platform == 'android-web'
+      if: matrix.platform == 'android'
       run: |
         flutter config --enable-web
         flutter build web --release
@@ -106,21 +105,21 @@ jobs:
       shell: bash
         
     - name: Upload Android APK
-      if: matrix.platform == 'android-web'
+      if: matrix.platform == 'android'
       uses: actions/upload-artifact@v4
       with:
         name: android-apk
         path: build/app/outputs/flutter-apk/${{ steps.version.outputs.APP_VERSION }}.apk
         
     - name: Upload Android App Bundle
-      if: matrix.platform == 'android-web'
+      if: matrix.platform == 'android'
       uses: actions/upload-artifact@v4
       with:
         name: android-aab
         path: build/app/outputs/bundle/release/${{ steps.version.outputs.APP_VERSION }}.aab
         
     - name: Upload Web Build
-      if: matrix.platform == 'android-web'
+      if: matrix.platform == 'android'
       uses: actions/upload-artifact@v4
       with:
         name: web-build

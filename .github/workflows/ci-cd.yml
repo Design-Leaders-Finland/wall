@@ -131,7 +131,6 @@ jobs:
         retention-days: 7
       continue-on-error: true
 
-  # Deploy web to Netlify
   deploy-netlify:
     name: Deploy to Netlify
     needs: build-tests
@@ -154,10 +153,9 @@ jobs:
         publish-dir: './build/web'
         production-branch: main
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        deploy-message: "Deploy from GitHub Actions"
+        deploy-message: "Deploy to Netlify from GitHub Actions"
         enable-pull-request-comment: false
-        enable-commit-comment: true
-        overwrites-pull-request-comment: true
+        enable-commit-comment: false
       env:
         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
