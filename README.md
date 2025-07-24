@@ -13,3 +13,47 @@ flutter install
 ```
 
 Icons generated with https://www.appiconly.com/
+
+## Getting Started
+
+### Install Dart and Flutter
+
+[Install Flutter](https://docs.flutter.dev/get-started/install) (includes Dart):
+   - Follow the instructions for your operating system.
+   - After installation, run `flutter doctor` in your terminal to check for any missing dependencies.
+
+### Local Development with Hot Reload
+
+To start the app locally with hot reload:
+
+```sh
+flutter run
+```
+
+This will launch the app on your connected device or emulator. Save your changes to see them reflected instantly with hot reload.
+
+## Quality Assurance
+
+### Linting and Formatting
+
+To check code quality and formatting, run:
+
+```sh
+flutter analyze
+flutter format .
+```
+
+### Running Tests
+
+To run all tests:
+
+```sh
+flutter test
+```
+
+Ensure all tests pass and address any issues reported by the analyzer before submitting changes.
+  
+## License
+
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
+

@@ -1,7 +1,13 @@
 name: wall
-description: "Anynous chat wall"
+description: "Anonymous chat wall"
+author: Design Leaders Finland <info@designleaders.fi>
+license: Apache-2.0
 publish_to: 'none'
 version: 0.1.0
+
+homepage: https://wall.designleaders.fi
+repository: https://github.com/Design-Leaders-Finland/wall
+issue_tracker: https://github.com/Design-Leaders-Finland/wall/issues
 
 environment:
   sdk: ^3.8.1
