@@ -1,6 +1,5 @@
 name: wall
 description: "Anonymous chat wall"
-author: Design Leaders Finland <info@designleaders.fi>
 license: Apache-2.0
 publish_to: 'none'
 version: 0.1.0

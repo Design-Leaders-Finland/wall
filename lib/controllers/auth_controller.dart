@@ -7,7 +7,7 @@ class AuthController {
   final AuthService _authService = AuthService();
 
   /// Gets the current authenticated user
-  get currentUser => _authService.getCurrentUser();
+  dynamic get currentUser => _authService.getCurrentUser();
 
   /// Gets a guest user ID for offline mode
   String getGuestUserId() => _authService.getGuestUserId();
