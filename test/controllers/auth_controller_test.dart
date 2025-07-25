@@ -1,10 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wall/controllers/auth_controller.dart';
 import 'package:wall/exceptions/auth_exception.dart';
+import '../test_helpers.dart';
 
 void main() {
   group('AuthController Tests', () {
     late AuthController authController;
+
+    setUpAll(() async {
+      await TestHelpers.initializeSupabase();
+    });
 
     setUp(() {
       authController = AuthController();
