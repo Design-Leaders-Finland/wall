@@ -38,7 +38,7 @@ jobs:
       shell: bash
       
     - name: Setup Flutter
-      uses: subosito/flutter-action@v2
+      uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2
       with:
         flutter-version: '3.32.6'
         channel: 'stable'
@@ -167,7 +167,7 @@ jobs:
         find ./artifacts -type f -name "*" 2>/dev/null || echo "No artifacts found"
         
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
       with:
         files: ./artifacts/*
         generate_release_notes: true
