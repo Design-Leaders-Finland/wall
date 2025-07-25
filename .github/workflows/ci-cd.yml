@@ -59,6 +59,13 @@ jobs:
       env:
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
+    - name: Upload coverage to Qlty
+      uses: qltysh/qlty-action/coverage@v1
+      continue-on-error: true
+      with:
+        token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+        files: coverage/lcov.info
+      
   # Build tests for different platforms
   build-tests:
     name: Build Tests
