@@ -48,6 +48,26 @@ jobs:
         echo "Running static analysis..."
         flutter analyze --fatal-infos
         
+    - name: Generate API documentation
+      run: |
+        dart doc --output docs
+        
+    - name: Upload documentation artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation
+        path: docs/
+        retention-days: 7
+        
+    - name: Deploy documentation to GitHub Pages
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
+        destination_dir: api-docs
+        commit_message: 'Deploy API documentation'
+
     - name: Run unit tests
       run: |
         echo "Running unit tests..."
@@ -137,7 +157,7 @@ jobs:
           build/ios/iphoneos/
         retention-days: 7
       continue-on-error: true
-
+      
   deploy-netlify:
     name: Deploy to Netlify
     needs: build-tests

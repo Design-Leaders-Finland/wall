@@ -54,6 +54,54 @@ flutter test
 ```
 
 Ensure all tests pass and address any issues reported by the analyzer before submitting changes.
+
+## Documentation
+
+### API Documentation
+
+The project automatically generates comprehensive API documentation from code comments. The documentation is built and deployed to GitHub Pages as part of the CI/CD pipeline.
+
+📚 **[View API Documentation](https://design-leaders-finland.github.io/wall/api-docs/)**
+
+### Generating Documentation Locally
+
+To generate the API documentation locally:
+
+```sh
+dart doc
+```
+
+This creates a `docs/` directory with the generated HTML documentation that you can open in your browser.
+
+### Contributing to Documentation
+
+When adding new classes, methods, or significant functionality:
+
+1. Add comprehensive documentation comments using `///`
+2. Include usage examples in code blocks
+3. Document parameters, return values, and exceptions
+4. Follow the [Dart documentation guidelines](https://dart.dev/effective-dart/documentation)
+
+Example documentation format:
+```dart
+/// Brief description of the class or method.
+/// 
+/// More detailed explanation if needed. Can include multiple
+/// paragraphs and markdown formatting.
+/// 
+/// ## Usage Example
+/// ```dart
+/// final service = MyService();
+/// final result = await service.doSomething('parameter');
+/// ```
+/// 
+/// **Parameters:**
+/// - [parameter]: Description of what this parameter does
+/// 
+/// **Returns:** Description of the return value
+/// 
+/// **Throws:** [Exception] when something goes wrong
+```
   
 ## License
 

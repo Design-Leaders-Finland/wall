@@ -1,5 +1,37 @@
-// Message service for real-time messaging functionality
-// Handles message storage, retrieval, real-time subscriptions, and offline synchronization
+/// A service for managing real-time messaging functionality.
+///
+/// This service handles message storage, retrieval, real-time subscriptions,
+/// and offline synchronization with Supabase backend. It provides both
+/// online and offline capabilities with automatic fallback mechanisms.
+///
+/// ## Features
+/// - Real-time message synchronization via Supabase Realtime
+/// - Offline message storage and retrieval
+/// - Automatic polling fallback when realtime is unavailable
+/// - Message validation and rate limiting
+/// - Guest user support with local-only storage
+///
+/// ## Usage
+/// ```dart
+/// final messageService = MessageService();
+///
+/// // Initialize real-time subscription
+/// messageService.initRealtimeSubscription();
+///
+/// // Send a message
+/// final success = await messageService.sendMessage(
+///   content: 'Hello world!',
+///   userId: 'user123',
+/// );
+///
+/// // Fetch all messages
+/// final messages = await messageService.fetchMessages();
+///
+/// // Clean up when done
+/// messageService.dispose();
+/// ```
+library;
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/message.dart';
 import '../utils/logger.dart';
@@ -9,15 +41,37 @@ class MessageService {
   final SupabaseClient _supabaseClient = Supabase.instance.client;
   late final RealtimeChannel _messagesChannel;
 
-  // Callback for new messages
+  /// Callback function that gets triggered when a new message is received.
+  ///
+  /// This callback is invoked both for messages received via real-time
+  /// subscription and for locally sent messages when offline.
   Function(Message)? onNewMessage;
 
-  // Message constraints
+  /// Maximum allowed length for message content in characters.
+  ///
+  /// Messages exceeding this length will be rejected by [sendMessage].
   static const int messageMaxLength = 160;
+
+  /// Minimum time interval between messages from the same user in minutes.
+  ///
+  /// Used for rate limiting to prevent spam. Messages sent within this
+  /// interval will be rejected by [sendMessage].
   static const int messageCooldownMinutes = 1;
+
+  /// Name of the Supabase table used for message storage.
   static const String tableName = 'messages';
 
-  // Initialize realtime subscription
+  /// Initializes real-time subscription for message updates.
+  ///
+  /// Sets up a Supabase Realtime channel to listen for new messages.
+  /// If realtime is not enabled or fails, automatically falls back to
+  /// polling mode for message updates.
+  ///
+  /// The subscription will:
+  /// - Listen for INSERT events on the messages table
+  /// - Automatically save received messages to local storage
+  /// - Trigger the [onNewMessage] callback for new messages
+  /// - Handle connection errors gracefully
   void initRealtimeSubscription() {
     try {
       AppLogger.info('Initializing realtime subscription for messages');

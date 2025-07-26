@@ -1,0 +1,39 @@
+dartdoc:
+  # Categories to organize the documentation
+  categoryOrder: ["Constructors", "Properties", "Methods", "Operators"]
+  
+  # Link to source code on GitHub
+  linkToSource:
+    root: '.'
+    uriTemplate: 'https://github.com/Design-Leaders-Finland/wall/blob/main/%f%#L%l%'
+  
+  # Exclude test files and build artifacts from documentation
+  exclude:
+    - 'package:flutter_test/**'
+    - 'package:test/**'
+    - 'test/**'
+    - 'build/**'
+    - '.dart_tool/**'
+  
+  # Validation settings
+  errors:
+    - 'ambiguous-doc-reference'
+    - 'broken-link'
+    - 'orphaned-file'
+    - 'unknown-directive'
+    - 'unknown-macro'
+  
+  warnings:
+    - 'missing-from-search-index'
+    - 'no-canonical-found'
+    - 'no-library-level-docs'
+    - 'tool-error'
+  
+  # Output settings
+  output: docs
+  
+  # Show progress during generation
+  quiet: false
+  
+  # Favicon and branding
+  favicon: 'web/favicon.png'
