@@ -10,7 +10,7 @@ env:
   FLUTTER_VERSION: '3.32.6'
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -70,6 +70,7 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./docs
+        force_orphan: true
 
     - name: Run unit tests
       run: |
