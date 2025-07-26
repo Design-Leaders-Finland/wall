@@ -1,3 +1,5 @@
+// Application initialization service for managing startup sequence
+// Handles Supabase initialization, SSL certificate validation, and splash screen timing
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../utils/logger.dart';

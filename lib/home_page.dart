@@ -1,3 +1,5 @@
+// Main home page for the Wall application
+// Manages real-time messaging functionality, user authentication, and connection status
 import 'package:flutter/material.dart';
 import 'models/message.dart';
 import 'controllers/auth_controller.dart';

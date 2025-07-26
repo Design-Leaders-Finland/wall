@@ -25,8 +25,7 @@ void main() {
 
     testWidgets('should validate constructor parameters', (tester) async {
       // Test constructor validation
-      Widget Function() testBuilder = () =>
-          const MaterialApp(home: Text('Test'));
+      Widget testBuilder() => const MaterialApp(home: Text('Test'));
 
       final handler = AppStartupHandler(appBuilder: testBuilder);
       expect(handler.appBuilder, equals(testBuilder));
@@ -68,7 +67,7 @@ void main() {
 
     testWidgets('should validate app builder function type', (tester) async {
       // Test that appBuilder is the correct function type
-      Widget Function() builder = () => const MaterialApp();
+      Widget builder() => const MaterialApp();
       final handler = AppStartupHandler(appBuilder: builder);
 
       expect(handler.appBuilder, isA<Widget Function()>());
@@ -86,7 +85,7 @@ void main() {
 
     testWidgets('should validate builder function execution', (tester) async {
       // Test that the builder function works when called
-      Widget Function() builder = () =>
+      Widget builder() =>
           const MaterialApp(home: Scaffold(body: Text('Test Content')));
 
       final handler = AppStartupHandler(appBuilder: builder);
@@ -98,7 +97,7 @@ void main() {
 
     testWidgets('should handle complex app builders', (tester) async {
       // Test with more complex app builder
-      Widget Function() complexBuilder = () => MaterialApp(
+      Widget complexBuilder() => MaterialApp(
         title: 'Test App',
         theme: ThemeData(primarySwatch: Colors.blue),
         home: const Scaffold(

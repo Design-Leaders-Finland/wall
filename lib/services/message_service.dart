@@ -1,3 +1,5 @@
+// Message service for real-time messaging functionality
+// Handles message storage, retrieval, real-time subscriptions, and offline synchronization
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/message.dart';
 import '../utils/logger.dart';

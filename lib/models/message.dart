@@ -1,3 +1,5 @@
+// Message model for the Wall application
+// Handles message data structure, formatting, and user identification
 import 'package:intl/intl.dart';
 
 class Message {

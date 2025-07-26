@@ -1,3 +1,5 @@
+// Splash screen widget displayed during app initialization
+// Shows the app logo and loading indicator with theme-aware styling
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatelessWidget {

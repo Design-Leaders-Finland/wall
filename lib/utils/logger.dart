@@ -1,3 +1,5 @@
+// Centralized logging utility for the Wall application
+// Provides structured logging with different levels and consistent formatting
 import 'package:logging/logging.dart';
 
 class AppLogger {

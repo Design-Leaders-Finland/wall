@@ -1,3 +1,5 @@
+// App startup handler widget for managing application initialization sequence
+// Displays splash screen during startup, handles initialization errors, and provides retry functionality
 import 'package:flutter/material.dart';
 import '../services/app_initialization_service.dart';
 import '../utils/logger.dart';

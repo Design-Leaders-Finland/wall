@@ -1,3 +1,5 @@
+// Main entry point for the Wall application
+// Handles app initialization, startup sequence, and theme management
 import 'package:flutter/material.dart';
 import 'package:wall/home_page.dart';
 import 'package:wall/utils/logger.dart';

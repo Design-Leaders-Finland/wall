@@ -1,3 +1,5 @@
+// Authentication service for managing user authentication
+// Handles anonymous sign-in, user sessions, and guest user ID generation
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../utils/logger.dart';
 import '../exceptions/auth_exception.dart';

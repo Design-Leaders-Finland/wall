@@ -1,3 +1,5 @@
+// Message list widget for displaying a collection of messages
+// Renders messages in a scrollable list using MessageListItem widgets
 import 'package:flutter/material.dart';
 import '../models/message.dart';
 import 'message_list_item.dart';

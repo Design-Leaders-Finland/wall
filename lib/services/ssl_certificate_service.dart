@@ -1,3 +1,5 @@
+// SSL certificate service for secure connections to Supabase
+// Handles SSL certificate loading, validation, and configuration for production environment
 import 'dart:io';
 import 'package:flutter/services.dart';
 import '../utils/logger.dart';

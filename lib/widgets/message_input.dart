@@ -1,3 +1,5 @@
+// Message input widget for composing and sending messages
+// Handles text input, send button functionality, and input validation
 import 'package:flutter/material.dart';
 import '../services/message_service.dart';
 

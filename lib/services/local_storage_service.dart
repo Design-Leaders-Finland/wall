@@ -1,3 +1,5 @@
+// Local storage service for offline message persistence and synchronization
+// Handles saving, loading, and managing messages in local storage using SharedPreferences
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/message.dart';

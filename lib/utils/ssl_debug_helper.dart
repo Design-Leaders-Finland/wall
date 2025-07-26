@@ -1,3 +1,5 @@
+// SSL debug helper utility for development and troubleshooting
+// Provides SSL certificate information display and debugging tools for development builds
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../services/ssl_certificate_service.dart';

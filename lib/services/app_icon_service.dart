@@ -1,3 +1,5 @@
+// App icon service for dynamic icon switching based on theme
+// Handles platform-specific app icon updates to match light/dark theme preferences
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

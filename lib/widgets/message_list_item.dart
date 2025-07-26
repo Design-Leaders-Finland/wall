@@ -1,3 +1,5 @@
+// Individual message list item widget for displaying single messages
+// Handles message formatting, timestamp display, and user identification
 import 'package:flutter/material.dart';
 import '../models/message.dart';
 
