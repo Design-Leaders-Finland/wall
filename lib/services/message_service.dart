@@ -36,9 +36,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/message.dart';
 import '../utils/logger.dart';
 import 'local_storage_service.dart';
+import 'auth_service.dart';
 
 class MessageService {
   final SupabaseClient _supabaseClient = Supabase.instance.client;
+  final AuthService _authService = AuthService();
   late final RealtimeChannel _messagesChannel;
 
   /// Callback function that gets triggered when a new message is received.
@@ -83,7 +85,26 @@ class MessageService {
             table: tableName,
             callback: (payload) {
               try {
-                final newMessage = Message.fromJson(payload.newRecord);
+                var newMessage = Message.fromJson(payload.newRecord);
+
+                // Generate display name if not present and not from current user
+                if (newMessage.displayName == null &&
+                    !newMessage.isFromCurrentUser) {
+                  // Generate a display name based on the message's user ID
+                  final displayName = _generateDisplayNameForUser(
+                    newMessage.userId,
+                  );
+
+                  // Create a new message with the display name
+                  newMessage = Message(
+                    content: newMessage.content,
+                    userId: newMessage.userId,
+                    createdAt: newMessage.createdAt,
+                    isFromCurrentUser: newMessage.isFromCurrentUser,
+                    displayName: displayName,
+                  );
+                }
+
                 AppLogger.info(
                   'New message received from user: ${newMessage.userId}',
                 );
@@ -219,9 +240,23 @@ class MessageService {
           .select('*')
           .order('created_at', ascending: true);
 
-      final messages = data
-          .map<Message>((json) => Message.fromJson(json))
-          .toList();
+      final messages = data.map<Message>((json) {
+        var message = Message.fromJson(json);
+
+        // Add display name if not present and not from current user
+        if (message.displayName == null && !message.isFromCurrentUser) {
+          final displayName = _generateDisplayNameForUser(message.userId);
+          message = Message(
+            content: message.content,
+            userId: message.userId,
+            createdAt: message.createdAt,
+            isFromCurrentUser: message.isFromCurrentUser,
+            displayName: displayName,
+          );
+        }
+
+        return message;
+      }).toList();
       AppLogger.info(
         'Successfully fetched ${messages.length} messages from Supabase',
       );
@@ -288,25 +323,32 @@ class MessageService {
     }
 
     // Create the message
+    final displayName = _authService.getHumanReadableName();
     final message = Message(
       content: content,
       userId: userId,
       createdAt: DateTime.now(),
       isFromCurrentUser: true, // Mark as from current user
+      displayName: displayName, // Add human-readable display name
     );
 
     try {
-      // Check if user is a guest user (starts with 'guest_')
-      final isGuestUser = userId.startsWith('guest_');
+      // Check if user is a guest user (UUID starting with 00000000-0000-4000-8000)
+      final isGuestUser = userId.startsWith('00000000-0000-4000-8000');
 
-      if (_isOnline && !isGuestUser) {
-        // Try to insert into database only for authenticated users
+      if (_isOnline) {
+        // Try to insert into database for both authenticated and guest users
+        // Guest users can send messages to the database in an anonymous chat wall
         final messageToSend = {
           'content': message.content,
           'user_id': message.userId,
           'created_at': message.createdAt.toIso8601String(),
           // Don't send isFromCurrentUser to the server
         };
+
+        AppLogger.info(
+          'Attempting to send message to Supabase: ${isGuestUser ? "Guest user" : "Authenticated user"}',
+        );
 
         await _supabaseClient.from(tableName).insert(messageToSend);
 
@@ -316,12 +358,8 @@ class MessageService {
         AppLogger.info('Message sent and stored both remotely and locally');
         return true;
       } else {
-        // For guest users or when offline, store locally only
-        if (isGuestUser) {
-          AppLogger.info('Guest user: Storing message locally only');
-        } else {
-          AppLogger.info('Offline mode: Storing message locally only');
-        }
+        // When offline, store locally only
+        AppLogger.info('Offline mode: Storing message locally only');
 
         final success = await LocalStorageService.addCurrentUserMessage(
           message,
@@ -358,4 +396,183 @@ class MessageService {
         .where((message) => !message.isExpired() || message.isFromCurrentUser)
         .toList();
   }
+
+  // Generate a human-readable display name for a given user ID
+  String _generateDisplayNameForUser(String userId) {
+    try {
+      // Split UUID into 4 parts (separated by hyphens)
+      final uuidParts = userId.split('-');
+      if (uuidParts.length != 5) {
+        throw Exception('Invalid UUID format');
+      }
+
+      // Use the first 4 parts of UUID (ignore the last part for now)
+      final part1 = uuidParts[0];
+      final part2 = uuidParts[1];
+      final part3 = uuidParts[2];
+      final part4 = uuidParts[3];
+
+      // Convert each UUID part to a word using consistent vocabulary
+      final word1 = _getWordFromUuidPart(part1, _adjectives);
+      final word2 = _getWordFromUuidPart(part2, _colors);
+      final word3 = _getWordFromUuidPart(part3, _animals);
+      final word4 = _getWordFromUuidPart(part4, _objects);
+
+      return '$word1 $word2 $word3 $word4';
+    } catch (e) {
+      AppLogger.error('Failed to generate display name for user: $userId', e);
+      // Fallback to a simple format using the last part of UUID
+      final shortId = userId.split('-').last.substring(0, 6);
+      return 'Guest-$shortId';
+    }
+  }
+
+  // Convert a UUID part (hex string) to an index for word selection
+  String _getWordFromUuidPart(String uuidPart, List<String> vocabulary) {
+    // Convert hex string to integer and use modulo to get index
+    final hexValue = int.parse(uuidPart, radix: 16);
+    final index = hexValue % vocabulary.length;
+    return vocabulary[index];
+  }
+
+  // Vocabulary lists for consistent word generation
+  static const List<String> _adjectives = [
+    'Swift',
+    'Bright',
+    'Calm',
+    'Bold',
+    'Wise',
+    'Kind',
+    'Quick',
+    'Strong',
+    'Gentle',
+    'Brave',
+    'Sharp',
+    'Clear',
+    'Warm',
+    'Cool',
+    'Fast',
+    'Smooth',
+    'Steady',
+    'Happy',
+    'Smart',
+    'Fresh',
+    'Pure',
+    'Noble',
+    'Fine',
+    'True',
+    'Grand',
+    'Fair',
+    'Rich',
+    'Deep',
+    'High',
+    'Wide',
+    'Soft',
+    'Hard',
+  ];
+
+  static const List<String> _colors = [
+    'Red',
+    'Blue',
+    'Green',
+    'Yellow',
+    'Orange',
+    'Purple',
+    'Pink',
+    'Brown',
+    'Black',
+    'White',
+    'Gray',
+    'Silver',
+    'Gold',
+    'Cyan',
+    'Magenta',
+    'Lime',
+    'Navy',
+    'Teal',
+    'Olive',
+    'Maroon',
+    'Coral',
+    'Salmon',
+    'Violet',
+    'Indigo',
+    'Crimson',
+    'Azure',
+    'Jade',
+    'Ruby',
+    'Amber',
+    'Pearl',
+    'Ivory',
+    'Bronze',
+  ];
+
+  static const List<String> _animals = [
+    'Lion',
+    'Tiger',
+    'Bear',
+    'Wolf',
+    'Fox',
+    'Eagle',
+    'Hawk',
+    'Owl',
+    'Dolphin',
+    'Whale',
+    'Shark',
+    'Horse',
+    'Deer',
+    'Rabbit',
+    'Turtle',
+    'Frog',
+    'Butterfly',
+    'Bee',
+    'Ant',
+    'Spider',
+    'Cat',
+    'Dog',
+    'Bird',
+    'Fish',
+    'Snake',
+    'Lizard',
+    'Mouse',
+    'Rat',
+    'Bat',
+    'Seal',
+    'Penguin',
+    'Kangaroo',
+  ];
+
+  static const List<String> _objects = [
+    'Star',
+    'Moon',
+    'Sun',
+    'Cloud',
+    'Mountain',
+    'River',
+    'Ocean',
+    'Forest',
+    'Stone',
+    'Crystal',
+    'Diamond',
+    'Pearl',
+    'Flame',
+    'Wind',
+    'Thunder',
+    'Rain',
+    'Snow',
+    'Ice',
+    'Fire',
+    'Earth',
+    'Sky',
+    'Wave',
+    'Rock',
+    'Tree',
+    'Flower',
+    'Leaf',
+    'Seed',
+    'Root',
+    'Branch',
+    'Light',
+    'Shadow',
+    'Dream',
+  ];
 }

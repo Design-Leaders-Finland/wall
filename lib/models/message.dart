@@ -7,12 +7,14 @@ class Message {
   final String userId;
   final DateTime createdAt;
   final bool isFromCurrentUser;
+  final String? displayName; // Optional human-readable display name
 
   Message({
     required this.content,
     required this.userId,
     required this.createdAt,
     this.isFromCurrentUser = false,
+    this.displayName,
   });
 
   // Create from JSON (Map)
@@ -24,6 +26,7 @@ class Message {
           ? DateTime.parse(json['created_at'])
           : DateTime.now(),
       isFromCurrentUser: json['is_from_current_user'] ?? false,
+      displayName: json['display_name'], // Optional display name from JSON
     );
   }
 
@@ -34,6 +37,7 @@ class Message {
       'user_id': userId,
       'created_at': createdAt.toIso8601String(),
       'is_from_current_user': isFromCurrentUser,
+      'display_name': displayName, // Include display name in JSON
     };
   }
 
@@ -43,7 +47,7 @@ class Message {
   }
 
   // Get short user ID display name
-  String get shortUserId => "ANONYMOUS USER";
+  String get shortUserId => displayName ?? "ANONYMOUS USER";
 
   // Format the time based on the device's locale
   String formatTime(String? locale) {
