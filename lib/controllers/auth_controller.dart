@@ -17,9 +17,7 @@ class AuthController {
     try {
       final user = await _authService.signInAnonymously();
 
-      if (user == null) {
-        AppLogger.info('Running in guest mode');
-      } else {
+      if (user != null) {
         AppLogger.info('Authentication successful for user: ${user.id}');
       }
 

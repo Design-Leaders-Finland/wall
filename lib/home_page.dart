@@ -49,10 +49,6 @@ class _HomePageState extends State<HomePage> {
       // Attempt authentication (may fall back to guest mode)
       final user = await _authController.signInAnonymously();
 
-      if (user == null) {
-        _showMessage('Running in guest mode.');
-      }
-
       // Initialize message controller
       _messageController.initialize();
 

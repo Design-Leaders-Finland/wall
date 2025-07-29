@@ -8,6 +8,8 @@ class Message {
   final DateTime createdAt;
   final bool isFromCurrentUser;
   final String? displayName; // Optional human-readable display name
+  final String?
+  avatarSeed; // Optional avatar seed for consistent avatar generation
 
   Message({
     required this.content,
@@ -15,6 +17,7 @@ class Message {
     required this.createdAt,
     this.isFromCurrentUser = false,
     this.displayName,
+    this.avatarSeed,
   });
 
   // Create from JSON (Map)
@@ -27,6 +30,7 @@ class Message {
           : DateTime.now(),
       isFromCurrentUser: json['is_from_current_user'] ?? false,
       displayName: json['display_name'], // Optional display name from JSON
+      avatarSeed: json['avatar_seed'], // Optional avatar seed from JSON
     );
   }
 
@@ -38,6 +42,7 @@ class Message {
       'created_at': createdAt.toIso8601String(),
       'is_from_current_user': isFromCurrentUser,
       'display_name': displayName, // Include display name in JSON
+      'avatar_seed': avatarSeed, // Include avatar seed in JSON
     };
   }
 

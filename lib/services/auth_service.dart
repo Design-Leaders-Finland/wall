@@ -175,6 +175,12 @@ class AuthService {
     }
   }
 
+  /// Get avatar seed for consistent avatar generation.
+  /// Uses the session UUID to ensure avatars are consistent with display names.
+  String getAvatarSeed() {
+    return getSessionUserId(); // Use the same UUID for both name and avatar
+  }
+
   // Convert a UUID part (hex string) to an index for word selection
   String _getWordFromUuidPart(String uuidPart, List<String> vocabulary) {
     // Convert hex string to integer and use modulo to get index

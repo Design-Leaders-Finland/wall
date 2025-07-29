@@ -1,7 +1,8 @@
 // Individual message list item widget for displaying single messages
-// Handles message formatting, timestamp display, and user identification
+// Handles message formatting, timestamp display, user identification, and avatars
 import 'package:flutter/material.dart';
 import '../models/message.dart';
+import 'user_avatar.dart';
 
 class MessageListItem extends StatelessWidget {
   final Message message;
@@ -32,51 +33,67 @@ class MessageListItem extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           color: containerColor,
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header row with user name and timestamp
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        userName,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: userNameColor,
+              // Avatar
+              UserAvatar(
+                userId: message.userId,
+                avatarSeed: message.avatarSeed,
+                size: 40.0,
+                isCurrentUser: message.isFromCurrentUser,
+              ),
+              const SizedBox(width: 12),
+              // Message content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row with user name and timestamp
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              userName,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: userNameColor,
+                              ),
+                            ),
+                            if (message.isFromCurrentUser)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8.0),
+                                child: Icon(
+                                  Icons.person,
+                                  size: 14,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                          ],
                         ),
-                      ),
-                      if (message.isFromCurrentUser)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
-                          child: Icon(
-                            Icons.person,
-                            size: 14,
-                            color: colorScheme.primary,
+                        Text(
+                          formattedTime,
+                          style: TextStyle(
+                            color: colorScheme.onSurfaceVariant,
+                            fontSize: 12,
                           ),
                         ),
-                    ],
-                  ),
-                  Text(
-                    formattedTime,
-                    style: TextStyle(
-                      color: colorScheme.onSurfaceVariant,
-                      fontSize: 12,
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Message content
-              Text(
-                message.content,
-                style: TextStyle(
-                  color: colorScheme.onSurface,
-                  fontWeight: message.isFromCurrentUser
-                      ? FontWeight.w500
-                      : FontWeight.normal,
+                    const SizedBox(height: 8),
+                    // Message content
+                    Text(
+                      message.content,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
+                        fontWeight: message.isFromCurrentUser
+                            ? FontWeight.w500
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

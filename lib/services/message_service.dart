@@ -94,13 +94,14 @@ class MessageService {
                     newMessage.userId,
                   );
 
-                  // Create a new message with the display name
+                  // Create a new message with the display name and avatar seed
                   newMessage = Message(
                     content: newMessage.content,
                     userId: newMessage.userId,
                     createdAt: newMessage.createdAt,
                     isFromCurrentUser: newMessage.isFromCurrentUser,
                     displayName: displayName,
+                    avatarSeed: newMessage.userId, // Use user ID as avatar seed
                   );
                 }
 
@@ -242,6 +243,7 @@ class MessageService {
             createdAt: message.createdAt,
             isFromCurrentUser: message.isFromCurrentUser,
             displayName: displayName,
+            avatarSeed: message.userId, // Use user ID as avatar seed
           );
         }
 
@@ -285,12 +287,14 @@ class MessageService {
 
     // Create the message
     final displayName = _authService.getHumanReadableName();
+    final avatarSeed = _authService.getAvatarSeed();
     final message = Message(
       content: content,
       userId: userId,
       createdAt: DateTime.now(),
       isFromCurrentUser: true, // Mark as from current user
       displayName: displayName, // Add human-readable display name
+      avatarSeed: avatarSeed, // Add avatar seed for consistent avatars
     );
 
     try {
