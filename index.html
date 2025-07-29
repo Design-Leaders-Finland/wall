@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="wall API docs, for the Dart programming language.">
+  <title>wall - Dart API docs</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="static-assets/github.css?v1">
+  <link rel="stylesheet" href="static-assets/styles.css?v1">
+  <link rel="icon" href="static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="https://wall.designleaders.fi">wall package</a></li>
+  </ol>
+  <div class="self-name">wall</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+  <div id="dartdoc-main-content" class="main-content">
+      
+<section class="desc markdown">
+  <h1 id="wall">wall</h1>
+<blockquote>
+<p>Write anonymous chat messages that have a max lenght of 160 characters, lifetime of 5 minutes, and can be seen by anyone else.</p>
+</blockquote>
+<p><a href="https://app.codacy.com/gh/Design-Leaders-Finland/wall/dashboard?utm_source=gh&amp;utm_medium=referral&amp;utm_content=&amp;utm_campaign=Badge_grade"><img src="https://app.codacy.com/project/badge/Grade/7f5b282964644331adf2295a81254267" alt="Codacy Badge"></a>
+<a href="https://qlty.sh/gh/Design-Leaders-Finland/projects/wall"><img src="https://qlty.sh/gh/Design-Leaders-Finland/projects/wall/maintainability.svg" alt="Maintainability"></a>
+<a href="https://qlty.sh/gh/Design-Leaders-Finland/projects/wall"><img src="https://qlty.sh/gh/Design-Leaders-Finland/projects/wall/coverage.svg" alt="Code Coverage"></a>
+<a href="https://wall.designleaders.fi"><img src="https://api.netlify.com/api/v1/badges/ab129df3-0fb9-48fe-a8fa-d50464ecc2f5/deploy-status" alt="Netlify Status"></a></p>
+<pre class="language-ps"><code class="language-ps"># Build Android APK
+flutter build apk --release
+# Install it to Android emulator
+flutter install
+</code></pre>
+<p>Icons generated with <a href="https://www.appiconly.com/">https://www.appiconly.com/</a></p>
+<h2 id="getting-started">Getting Started</h2>
+<h3 id="install-dart-and-flutter">Install Dart and Flutter</h3>
+<p><a href="https://docs.flutter.dev/get-started/install">Install Flutter</a> (includes Dart):</p>
+<ul>
+<li>Follow the instructions for your operating system.</li>
+<li>After installation, run <code>flutter doctor</code> in your terminal to check for any missing dependencies.</li>
+</ul>
+<h3 id="local-development-with-hot-reload">Local Development with Hot Reload</h3>
+<p>To start the app locally with hot reload:</p>
+<pre class="language-sh"><code class="language-sh">flutter run
+</code></pre>
+<p>This will launch the app on your connected device or emulator. Save your changes to see them reflected instantly with hot reload.</p>
+<h2 id="quality-assurance">Quality Assurance</h2>
+<h3 id="linting-and-formatting">Linting and Formatting</h3>
+<p>To check code quality and formatting, run:</p>
+<pre class="language-sh"><code class="language-sh">flutter analyze
+flutter format .
+</code></pre>
+<h3 id="running-tests">Running Tests</h3>
+<p>To run all tests:</p>
+<pre class="language-sh"><code class="language-sh">flutter test
+</code></pre>
+<p>Ensure all tests pass and address any issues reported by the analyzer before submitting changes.</p>
+<h2 id="documentation">Documentation</h2>
+<h3 id="api-documentation">API Documentation</h3>
+<p>The project automatically generates comprehensive API documentation from code comments. The documentation is built and deployed to GitHub Pages as part of the CI/CD pipeline.</p>
+<p>📚 <strong><a href="https://design-leaders-finland.github.io/wall/api-docs/">View API Documentation</a></strong></p>
+<h3 id="generating-documentation-locally">Generating Documentation Locally</h3>
+<p>To generate the API documentation locally:</p>
+<pre class="language-sh"><code class="language-sh">dart doc
+</code></pre>
+<p>This creates a <code>docs/</code> directory with the generated HTML documentation that you can open in your browser.</p>
+<h3 id="contributing-to-documentation">Contributing to Documentation</h3>
+<p>When adding new classes, methods, or significant functionality:</p>
+<ol>
+<li>Add comprehensive documentation comments using <code>///</code></li>
+<li>Include usage examples in code blocks</li>
+<li>Document parameters, return values, and exceptions</li>
+<li>Follow the <a href="https://dart.dev/effective-dart/documentation">Dart documentation guidelines</a></li>
+</ol>
+<p>Example documentation format:</p>
+<pre class="language-dart"><code class="language-dart">/// Brief description of the class or method.
+/// 
+/// More detailed explanation if needed. Can include multiple
+/// paragraphs and markdown formatting.
+/// 
+/// ## Usage Example
+/// ```dart
+/// final service = MyService();
+/// final result = await service.doSomething('parameter');
+/// ```
+/// 
+/// **Parameters:**
+/// - [parameter]: Description of what this parameter does
+/// 
+/// **Returns:** Description of the return value
+/// 
+/// **Throws:** [Exception] when something goes wrong
+</code></pre>
+<h2 id="license">License</h2>
+<p>This project is licensed under the Apache License 2.0. See the <a href="LICENSE">LICENSE</a> file for details.</p>
+</section>
+
+
+      <section class="summary">
+          <h2>Libraries</h2>
+        <dl>
+          <dt id="auth_controller">
+  <span class="name"><a href="controllers_auth_controller/">controllers/auth_controller</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="connection_manager">
+  <span class="name"><a href="controllers_connection_manager/">controllers/connection_manager</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="home_page_state">
+  <span class="name"><a href="controllers_home_page_state/">controllers/home_page_state</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="message_controller">
+  <span class="name"><a href="controllers_message_controller/">controllers/message_controller</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="auth_exception">
+  <span class="name"><a href="exceptions_auth_exception/">exceptions/auth_exception</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="home_page">
+  <span class="name"><a href="home_page/">home_page</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="main">
+  <span class="name"><a href="main/">main</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="message">
+  <span class="name"><a href="models_message/">models/message</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="app_icon_service">
+  <span class="name"><a href="services_app_icon_service/">services/app_icon_service</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="app_initialization_service">
+  <span class="name"><a href="services_app_initialization_service/">services/app_initialization_service</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="auth_service">
+  <span class="name"><a href="services_auth_service/">services/auth_service</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="local_storage_service">
+  <span class="name"><a href="services_local_storage_service/">services/local_storage_service</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="message_service">
+  <span class="name"><a href="services_message_service/">services/message_service</a></span> 
+
+</dt>
+<dd>A service for managing real-time messaging functionality.
+</dd>
+
+          <dt id="ssl_certificate_service">
+  <span class="name"><a href="services_ssl_certificate_service/">services/ssl_certificate_service</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="logger">
+  <span class="name"><a href="utils_logger/">utils/logger</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="ssl_debug_helper">
+  <span class="name"><a href="utils_ssl_debug_helper/">utils/ssl_debug_helper</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="app_startup_handler">
+  <span class="name"><a href="widgets_app_startup_handler/">widgets/app_startup_handler</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="auth_error_widget">
+  <span class="name"><a href="widgets_auth_error_widget/">widgets/auth_error_widget</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="cooldown_timer">
+  <span class="name"><a href="widgets_cooldown_timer/">widgets/cooldown_timer</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="message_input">
+  <span class="name"><a href="widgets_message_input/">widgets/message_input</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="message_list">
+  <span class="name"><a href="widgets_message_list/">widgets/message_list</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="message_list_item">
+  <span class="name"><a href="widgets_message_list_item/">widgets/message_list_item</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="offline_indicator">
+  <span class="name"><a href="widgets_offline_indicator/">widgets/offline_indicator</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="splash_screen">
+  <span class="name"><a href="widgets_splash_screen/">widgets/splash_screen</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+          <dt id="theme_aware_icon_handler">
+  <span class="name"><a href="widgets_theme_aware_icon_handler/">widgets/theme_aware_icon_handler</a></span> 
+
+</dt>
+<dd>
+</dd>
+
+        </dl>
+      </section>
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="https://wall.designleaders.fi">wall package</a></li>
+</ol>
+
+    <h5 class="hidden-xs"><span class="package-name">wall</span> <span class="package-kind">package</span></h5>
+    <ol>
+      <li class="section-title">Libraries</li>
+      <li><a href="controllers_auth_controller/">controllers/auth_controller</a></li>
+      <li><a href="controllers_connection_manager/">controllers/connection_manager</a></li>
+      <li><a href="controllers_home_page_state/">controllers/home_page_state</a></li>
+      <li><a href="controllers_message_controller/">controllers/message_controller</a></li>
+      <li><a href="exceptions_auth_exception/">exceptions/auth_exception</a></li>
+      <li><a href="home_page/">home_page</a></li>
+      <li><a href="main/">main</a></li>
+      <li><a href="models_message/">models/message</a></li>
+      <li><a href="services_app_icon_service/">services/app_icon_service</a></li>
+      <li><a href="services_app_initialization_service/">services/app_initialization_service</a></li>
+      <li><a href="services_auth_service/">services/auth_service</a></li>
+      <li><a href="services_local_storage_service/">services/local_storage_service</a></li>
+      <li><a href="services_message_service/">services/message_service</a></li>
+      <li><a href="services_ssl_certificate_service/">services/ssl_certificate_service</a></li>
+      <li><a href="utils_logger/">utils/logger</a></li>
+      <li><a href="utils_ssl_debug_helper/">utils/ssl_debug_helper</a></li>
+      <li><a href="widgets_app_startup_handler/">widgets/app_startup_handler</a></li>
+      <li><a href="widgets_auth_error_widget/">widgets/auth_error_widget</a></li>
+      <li><a href="widgets_cooldown_timer/">widgets/cooldown_timer</a></li>
+      <li><a href="widgets_message_input/">widgets/message_input</a></li>
+      <li><a href="widgets_message_list/">widgets/message_list</a></li>
+      <li><a href="widgets_message_list_item/">widgets/message_list_item</a></li>
+      <li><a href="widgets_offline_indicator/">widgets/offline_indicator</a></li>
+      <li><a href="widgets_splash_screen/">widgets/splash_screen</a></li>
+      <li><a href="widgets_theme_aware_icon_handler/">widgets/theme_aware_icon_handler</a></li>
+</ol>
+
+  </div>
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div>
+</main>
+<footer>
+  <span class="no-break">
+    wall
+      0.1.0
+  </span>
+  
+</footer>
+
+
+<script src="static-assets/highlight.pack.js?v1"></script>
+<script src="static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+

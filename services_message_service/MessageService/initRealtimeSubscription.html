@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the initRealtimeSubscription method from the MessageService class, for the Dart programming language.">
+  <title>initRealtimeSubscription method - MessageService class - message_service library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../../static-assets/styles.css?v1">
+  <link rel="icon" href="../../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../../index.html">wall</a></li>
+    <li><a href="../../services_message_service/">services&#47;message_service.dart</a></li>
+    <li><a href="../../services_message_service/MessageService-class.html">MessageService</a></li>
+    <li class="self-crumb">initRealtimeSubscription method</li>
+  </ol>
+  <div class="self-name">initRealtimeSubscription</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+<div
+    id="dartdoc-main-content"
+    class="main-content"
+    data-above-sidebar="services_message_service&#47;MessageService-class-sidebar.html"
+    data-below-sidebar="">
+    <div>
+  <div id="external-links" class="btn-group"><a title="View source code" class="source-link" href="https://github.com/Design-Leaders-Finland/wall/blob/main/lib/services/message_service.dart#L76"><span class="material-symbols-outlined">description</span></a></div>
+<h1><span class="kind-method">initRealtimeSubscription</span> method 
+</h1></div>
+
+    <section class="multi-line-signature">
+      
+<span class="returntype">void</span>
+<span class="name ">initRealtimeSubscription</span>(<wbr>)
+
+      
+
+    </section>
+    
+<section class="desc markdown">
+  <p>Initializes real-time subscription for message updates.</p>
+<p>Sets up a Supabase Realtime channel to listen for new messages.
+If realtime is not enabled or fails, automatically falls back to
+polling mode for message updates.</p>
+<p>The subscription will:</p>
+<ul>
+<li>Listen for INSERT events on the messages table</li>
+<li>Automatically save received messages to local storage</li>
+<li>Trigger the <a href="../../services_message_service/MessageService/onNewMessage.html">onNewMessage</a> callback for new messages</li>
+<li>Handle connection errors gracefully</li>
+</ul>
+</section>
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">void initRealtimeSubscription() {
+  try {
+    AppLogger.info(&#39;Initializing realtime subscription for messages&#39;);
+    _messagesChannel = _supabaseClient
+        .channel(&#39;public:$tableName&#39;)
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: &#39;public&#39;,
+          table: tableName,
+          callback: (payload) {
+            try {
+              var newMessage = Message.fromJson(payload.newRecord);
+
+              &#47;&#47; Generate display name if not present and not from current user
+              if (newMessage.displayName == null &amp;&amp;
+                  !newMessage.isFromCurrentUser) {
+                &#47;&#47; Generate a display name based on the message&#39;s user ID
+                final displayName = _generateDisplayNameForUser(
+                  newMessage.userId,
+                );
+
+                &#47;&#47; Create a new message with the display name
+                newMessage = Message(
+                  content: newMessage.content,
+                  userId: newMessage.userId,
+                  createdAt: newMessage.createdAt,
+                  isFromCurrentUser: newMessage.isFromCurrentUser,
+                  displayName: displayName,
+                );
+              }
+
+              AppLogger.info(
+                &#39;New message received from user: ${newMessage.userId}&#39;,
+              );
+
+              if (onNewMessage != null) {
+                onNewMessage!(newMessage);
+              }
+            } catch (e) {
+              AppLogger.error(&#39;Error processing realtime message&#39;, e);
+            }
+          },
+        )
+        .subscribe((status, [error]) {
+          if (status == RealtimeSubscribeStatus.subscribed) {
+            AppLogger.info(&#39;Realtime subscription successful&#39;);
+            _isOnline = true;
+          } else if (status == RealtimeSubscribeStatus.closed) {
+            AppLogger.warning(&#39;Realtime subscription closed&#39;);
+            _isOnline = false;
+          } else if (status == RealtimeSubscribeStatus.channelError) {
+            AppLogger.error(
+              &#39;Realtime subscription error: ${error?.toString()}&#39;,
+            );
+            _isOnline = false;
+
+            &#47;&#47; Check if this is the specific Realtime not enabled error
+            if (error?.toString().contains(
+                      &#39;Unable to subscribe to changes&#39;,
+                    ) ==
+                    true ||
+                error?.toString().contains(&#39;Realtime is not enabled&#39;) ==
+                    true) {
+              AppLogger.warning(
+                &#39;Realtime is not enabled for the messages table. App will work in polling mode.&#39;,
+              );
+              &#47;&#47; Set up polling fallback (optional)
+              _setupPollingFallback();
+            }
+          }
+        });
+
+    AppLogger.info(&#39;Realtime subscription setup initiated&#39;);
+  } catch (e) {
+    AppLogger.error(&#39;Error setting up realtime subscription&#39;, e);
+    _isOnline = false;
+    _setupPollingFallback();
+  }
+}</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../../index.html">wall</a></li>
+    <li><a href="../../services_message_service/">message_service</a></li>
+    <li><a href="../../services_message_service/MessageService-class.html">MessageService</a></li>
+    <li class="self-crumb">initRealtimeSubscription method</li>
+</ol>
+
+    <h5>MessageService class</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div><!--/.sidebar-offcanvas-->
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+</div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    wall
+      0.1.0
+  </span>
+  
+</footer>
+
+
+<script src="../../static-assets/highlight.pack.js?v1"></script>
+<script src="../../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+
