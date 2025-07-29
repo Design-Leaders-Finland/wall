@@ -3,18 +3,13 @@ import '../exceptions/auth_exception.dart';
 import '../utils/logger.dart';
 
 /// Controller for managing authentication state and operations.
-/// Handles both authenticated users and guest mode with dual UUID systems:
-/// - Day-based guest IDs for local consistency (guest_YYYYMMDD)
-/// - Session UUIDs for database operations (RFC 4122 compliant)
+/// Handles both authenticated users and guest mode with session UUID system
+/// for database operations (RFC 4122 compliant).
 class AuthController {
   final AuthService _authService = AuthService();
 
   /// Gets the current authenticated user
   dynamic get currentUser => _authService.getCurrentUser();
-
-  /// Gets a day-based guest user ID for local operations and consistency.
-  /// Returns format: guest_YYYYMMDD (e.g., guest_20250729)
-  String getGuestUserId() => _authService.getGuestUserId();
 
   /// Attempts to sign in anonymously
   /// Returns null if falling back to guest mode
@@ -23,9 +18,7 @@ class AuthController {
       final user = await _authService.signInAnonymously();
 
       if (user == null) {
-        AppLogger.info(
-          'Running in guest mode - messages will be stored locally only',
-        );
+        AppLogger.info('Running in guest mode');
       } else {
         AppLogger.info('Authentication successful for user: ${user.id}');
       }
@@ -42,7 +35,7 @@ class AuthController {
   ///
   /// For authenticated users: returns (user.id, false)
   /// For guest users: returns (sessionUUID, true) - uses RFC 4122 compliant UUID
-  /// for database compatibility, not the day-based guest ID format.
+  /// for database compatibility.
   (String, bool) getUserIdForMessaging() {
     final user = currentUser;
 
@@ -50,7 +43,7 @@ class AuthController {
       AppLogger.info(
         'No authenticated user, using guest mode for message sending',
       );
-      // Use session UUID for database operations, not day-based guest ID
+      // Use session UUID for database operations
       final sessionId = _authService.getSessionUserId();
       AppLogger.info(
         'Sending message as guest user with session UUID: $sessionId',

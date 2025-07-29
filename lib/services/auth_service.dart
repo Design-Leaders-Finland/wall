@@ -128,20 +128,8 @@ class AuthService {
     }
   }
 
-  /// Get day-based guest user ID for local operations and consistency.
-  /// Returns format: guest_YYYYMMDD (e.g., guest_20250729).
-  /// Used for local storage keys and day-based operations.
-  String getGuestUserId() {
-    // Generate a day-based guest ID for consistency within the same day
-    final today = DateTime.now();
-    final dayString =
-        '${today.year}${today.month.toString().padLeft(2, '0')}${today.day.toString().padLeft(2, '0')}';
-    return 'guest_$dayString';
-  }
-
   /// Get the session UUID for database operations and name generation.
   /// Returns a RFC 4122 compliant UUID that's compatible with PostgreSQL.
-  /// This is different from getGuestUserId() which returns day-based format.
   String getSessionUserId() {
     // Return the session guest ID if available, otherwise generate a new one
     if (_sessionGuestId != null) {

@@ -90,11 +90,6 @@ class MessageController {
     }
   }
 
-  /// Gets count of local messages from current user
-  int getLocalMessageCount() {
-    return _messages.where((m) => m.isFromCurrentUser).length;
-  }
-
   /// Sorts messages by creation time
   void _sortMessages() {
     _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));

@@ -35,18 +35,6 @@ void main() {
       });
     });
 
-    group('Message Operations', () {
-      test('should get local message count correctly', () {
-        // This test would need mocked data, but let's test the basic functionality
-        // Act
-        final count = messageController.getLocalMessageCount();
-
-        // Assert
-        expect(count, isA<int>());
-        expect(count, greaterThanOrEqualTo(0));
-      });
-    });
-
     group('Rate Limiting', () {
       test(
         'should handle message sending gracefully in test environment',

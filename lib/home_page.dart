@@ -33,12 +33,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _messageController.onMessagesUpdated = (messages) {
       setState(() {
-        final localMessages = messages
-            .where((m) => m.isFromCurrentUser)
-            .toList();
         _connectionManager.updateConnectionState(
           isOffline: !_messageController.isOnline,
-          localMessageCount: localMessages.length,
         );
       });
     };
@@ -54,9 +50,7 @@ class _HomePageState extends State<HomePage> {
       final user = await _authController.signInAnonymously();
 
       if (user == null) {
-        _showMessage(
-          'Running in guest mode. Your messages are stored locally.',
-        );
+        _showMessage('Running in guest mode.');
       }
 
       // Initialize message controller
@@ -72,7 +66,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {});
 
       if (_connectionManager.isOffline && user != null) {
-        _showMessage('Working in offline mode. Messages are stored locally.');
+        _showMessage('Working in offline mode.');
       }
     } on AuthFailedException catch (e) {
       AppLogger.error('Authentication exception caught in HomePage', e);
@@ -82,18 +76,14 @@ class _HomePageState extends State<HomePage> {
         // Initialize message controller anyway
         _messageController.initialize();
 
-        // Fetch initial messages - will use local storage if online fetch fails
+        // Fetch initial messages
         await _fetchMessages();
 
         _pageState.setInitialized();
-        _connectionManager.setOfflineMode(
-          _messageController.getLocalMessageCount(),
-        );
+        _connectionManager.setOfflineMode(0);
         setState(() {});
 
-        _showMessage(
-          'Authentication failed. Working in offline mode with local data.',
-        );
+        _showMessage('Authentication failed. Working in offline mode.');
       } catch (innerError) {
         // Only if both auth and data fetching fail, show the error screen
         _pageState.setAuthFailed(true, e.toString());
@@ -107,14 +97,10 @@ class _HomePageState extends State<HomePage> {
         await _fetchMessages();
 
         _pageState.setInitialized();
-        _connectionManager.setOfflineMode(
-          _messageController.getLocalMessageCount(),
-        );
+        _connectionManager.setOfflineMode(0);
         setState(() {});
 
-        _showMessage(
-          'Connection error. Working in offline mode with local data.',
-        );
+        _showMessage('Connection error. Working in offline mode.');
       } catch (localError) {
         // If even local storage fails, show the error screen
         _pageState.setAuthFailed(
@@ -127,13 +113,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchMessages() async {
-    final messages = await _messageController.fetchMessages();
-    final localMessages = messages.where((m) => m.isFromCurrentUser).toList();
+    await _messageController.fetchMessages();
 
     setState(() {
       _connectionManager.updateConnectionState(
         isOffline: !_messageController.isOnline,
-        localMessageCount: localMessages.length,
       );
     });
   }
@@ -149,11 +133,9 @@ class _HomePageState extends State<HomePage> {
       final success = await _messageController.tryReconnect();
       if (success) {
         await _fetchMessages();
-        _showMessage(
-          'Reconnected successfully. Your local messages will sync when you send a new message.',
-        );
+        _showMessage('Reconnected successfully.');
       } else {
-        _showMessage('Still offline. Your messages are saved locally.');
+        _showMessage('Still offline.');
       }
     } catch (e) {
       AppLogger.error('Error trying to reconnect', e);
@@ -178,11 +160,7 @@ class _HomePageState extends State<HomePage> {
       );
 
       if (success) {
-        // If we're offline, we need to refresh the messages list explicitly
-        // since the realtime subscription won't work
-        if (_connectionManager.isOffline) {
-          await _fetchMessages();
-        }
+        // Message sent successfully
       } else {
         _showMessage('Failed to send message. Please try again.');
       }

@@ -45,26 +45,6 @@ void main() {
       });
     });
 
-    group('getGuestUserId', () {
-      test('should generate guest user ID', () {
-        // Act
-        final guestId = authController.getGuestUserId();
-
-        // Assert
-        expect(guestId, isNotEmpty);
-        expect(guestId.startsWith('guest_'), isTrue);
-      });
-
-      test('should generate same ID for same day', () {
-        // Act
-        final guestId1 = authController.getGuestUserId();
-        final guestId2 = authController.getGuestUserId();
-
-        // Assert
-        expect(guestId1, equals(guestId2));
-      });
-    });
-
     group('currentUser', () {
       test('should return null when not authenticated', () {
         // Act

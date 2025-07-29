@@ -35,7 +35,6 @@ library;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/message.dart';
 import '../utils/logger.dart';
-import 'local_storage_service.dart';
 import 'auth_service.dart';
 
 class MessageService {
@@ -108,15 +107,6 @@ class MessageService {
                 AppLogger.info(
                   'New message received from user: ${newMessage.userId}',
                 );
-
-                // Save message to local storage for offline access
-                LocalStorageService.addMessage(newMessage).then((success) {
-                  if (!success) {
-                    AppLogger.warning(
-                      'Failed to save received message to local storage',
-                    );
-                  }
-                });
 
                 if (onNewMessage != null) {
                   onNewMessage!(newMessage);
@@ -261,41 +251,12 @@ class MessageService {
         'Successfully fetched ${messages.length} messages from Supabase',
       );
 
-      // We successfully connected, so save these messages locally too
       _isOnline = true;
-      await LocalStorageService.saveMessages(messages);
-
-      // Also get current user's messages and combine them
-      final currentUserMessages =
-          await LocalStorageService.loadCurrentUserMessages();
-      final allMessages = [...messages, ...currentUserMessages];
-
-      // Sort by creation time
-      allMessages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-
-      return allMessages;
+      return messages;
     } catch (e) {
       AppLogger.error('Error fetching messages from Supabase', e);
       _isOnline = false;
-
-      // Check if the error is related to authentication or connectivity
-      if (e.toString().contains('JWT') ||
-          e.toString().contains('authentication') ||
-          e.toString().contains('auth') ||
-          e.toString().contains('permission') ||
-          e.toString().contains('network') ||
-          e.toString().contains('connect')) {
-        AppLogger.warning(
-          'Authentication/connectivity issue. Falling back to local storage.',
-        );
-      }
-
-      // Fall back to local storage - load both regular cached messages and current user's messages
-      final allMessages = await LocalStorageService.loadAllMessages();
-      AppLogger.info(
-        'Loaded ${allMessages.length} messages from local storage (including user messages)',
-      );
-      return allMessages;
+      return [];
     }
   }
 
@@ -352,40 +313,17 @@ class MessageService {
 
         await _supabaseClient.from(tableName).insert(messageToSend);
 
-        // Save locally as well for offline access, marked as current user's message
-        await LocalStorageService.addCurrentUserMessage(message);
-
-        AppLogger.info('Message sent and stored both remotely and locally');
+        AppLogger.info('Message sent successfully to Supabase');
         return true;
       } else {
-        // When offline, store locally only
-        AppLogger.info('Offline mode: Storing message locally only');
-
-        final success = await LocalStorageService.addCurrentUserMessage(
-          message,
-        );
-
-        // If local storage succeeds, trigger the message callback
-        if (success && onNewMessage != null) {
-          onNewMessage!(message);
-        }
-
-        return success;
+        // When offline, reject the message
+        AppLogger.warning('Cannot send message: offline mode');
+        return false;
       }
     } catch (e) {
       AppLogger.error('Error sending message to Supabase', e);
-
-      // If remote storage fails, try local storage as fallback
       _isOnline = false;
-      AppLogger.info('Falling back to local storage for message');
-      final success = await LocalStorageService.addCurrentUserMessage(message);
-
-      // If local storage succeeds, trigger the message callback
-      if (success && onNewMessage != null) {
-        onNewMessage!(message);
-      }
-
-      return success;
+      return false;
     }
   }
 
