@@ -16,17 +16,23 @@ void main() {
     });
 
     group('getUserIdForMessaging', () {
-      test('should return guest ID when no authenticated user', () {
+      test('should return session UUID when no authenticated user', () {
         // Act
         final (userId, isGuest) = authController.getUserIdForMessaging();
 
         // Assert
         expect(isGuest, isTrue);
         expect(userId, isNotEmpty);
-        expect(userId.startsWith('guest_'), isTrue);
+        // Should return a UUID format (not guest_ format) for database compatibility
+        expect(userId.contains('-'), isTrue); // UUIDs contain hyphens
+        expect(userId.length, equals(36)); // Standard UUID length
+        expect(
+          userId.startsWith('guest_'),
+          isFalse,
+        ); // No longer returns guest_ format
       });
 
-      test('should generate consistent guest IDs within same day', () {
+      test('should generate consistent session UUIDs within same session', () {
         // Act
         final (userId1, isGuest1) = authController.getUserIdForMessaging();
         final (userId2, isGuest2) = authController.getUserIdForMessaging();
@@ -34,6 +40,7 @@ void main() {
         // Assert
         expect(isGuest1, isTrue);
         expect(isGuest2, isTrue);
+        // Session UUIDs should be consistent within the same session
         expect(userId1, equals(userId2));
       });
     });

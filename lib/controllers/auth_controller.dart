@@ -2,14 +2,18 @@ import '../services/auth_service.dart';
 import '../exceptions/auth_exception.dart';
 import '../utils/logger.dart';
 
-/// Controller for managing authentication state and operations
+/// Controller for managing authentication state and operations.
+/// Handles both authenticated users and guest mode with dual UUID systems:
+/// - Day-based guest IDs for local consistency (guest_YYYYMMDD)
+/// - Session UUIDs for database operations (RFC 4122 compliant)
 class AuthController {
   final AuthService _authService = AuthService();
 
   /// Gets the current authenticated user
   dynamic get currentUser => _authService.getCurrentUser();
 
-  /// Gets a guest user ID for offline mode
+  /// Gets a day-based guest user ID for local operations and consistency.
+  /// Returns format: guest_YYYYMMDD (e.g., guest_20250729)
   String getGuestUserId() => _authService.getGuestUserId();
 
   /// Attempts to sign in anonymously
@@ -33,8 +37,12 @@ class AuthController {
     }
   }
 
-  /// Determines the user ID to use for message sending
-  /// Returns a tuple of (userId, isGuest)
+  /// Determines the user ID to use for database operations (message sending).
+  /// Returns a tuple of (userId, isGuest).
+  ///
+  /// For authenticated users: returns (user.id, false)
+  /// For guest users: returns (sessionUUID, true) - uses RFC 4122 compliant UUID
+  /// for database compatibility, not the day-based guest ID format.
   (String, bool) getUserIdForMessaging() {
     final user = currentUser;
 
@@ -42,9 +50,12 @@ class AuthController {
       AppLogger.info(
         'No authenticated user, using guest mode for message sending',
       );
-      final guestId = getGuestUserId();
-      AppLogger.info('Sending message as guest user: $guestId');
-      return (guestId, true);
+      // Use session UUID for database operations, not day-based guest ID
+      final sessionId = _authService.getSessionUserId();
+      AppLogger.info(
+        'Sending message as guest user with session UUID: $sessionId',
+      );
+      return (sessionId, true);
     } else {
       AppLogger.info('Sending message as authenticated user: ${user.id}');
       return (user.id, false);

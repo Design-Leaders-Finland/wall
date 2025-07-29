@@ -16,16 +16,6 @@ void main() {
         expect(expectedResult, matches(r'guest_\d+'));
       });
 
-      test('should generate consistent guest IDs within same day', () {
-        final now = DateTime.now();
-        final suffix = '${now.day}${now.month}${now.year}';
-        final result1 = 'guest_$suffix';
-        final result2 = 'guest_$suffix';
-
-        // Should be the same since they're based on the same date
-        expect(result1, equals(result2));
-      });
-
       test('should include current date components', () {
         final now = DateTime.now();
         final expectedSuffix = '${now.day}${now.month}${now.year}';

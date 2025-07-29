@@ -6,12 +6,14 @@ import 'controllers/auth_controller.dart';
 import 'controllers/message_controller.dart';
 import 'controllers/connection_manager.dart';
 import 'controllers/home_page_state.dart';
+import 'services/message_service.dart';
 import 'exceptions/auth_exception.dart';
 import 'utils/logger.dart';
 import 'widgets/message_input.dart';
 import 'widgets/message_list.dart';
 import 'widgets/auth_error_widget.dart';
 import 'widgets/offline_indicator.dart';
+import 'widgets/cooldown_timer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -198,6 +200,17 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Checks if the user is currently in the message sending cooldown period.
+  /// Returns true if less than [MessageService.messageCooldownMinutes] have
+  /// passed since the last message was sent.
+  bool _isInCooldown() {
+    final lastMessageTime = _messageController.lastMessageSentTime;
+    if (lastMessageTime == null) return false;
+
+    final elapsed = DateTime.now().difference(lastMessageTime);
+    return elapsed.inMinutes < MessageService.messageCooldownMinutes;
+  }
+
   @override
   void dispose() {
     _messageController.dispose();
@@ -260,6 +273,19 @@ class _HomePageState extends State<HomePage> {
         ),
         // Message list
         Expanded(child: MessageList(messages: visibleMessages)),
+        // Cooldown timer (shown when rate limited)
+        if (_messageController.lastMessageSentTime != null && _isInCooldown())
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: CooldownTimer(
+              lastMessageTime: _messageController.lastMessageSentTime!,
+              onCooldownExpired: () {
+                setState(() {
+                  // Refresh UI when cooldown expires
+                });
+              },
+            ),
+          ),
         // Message input at bottom
         MessageInput(onSendMessage: _handleSendMessage),
       ],
