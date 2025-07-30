@@ -86,9 +86,12 @@ class MessageService {
               try {
                 var newMessage = Message.fromJson(payload.newRecord);
 
+                // Determine if this message is from the current user
+                final currentUserId = _authService.getSessionUserId();
+                final isFromCurrentUser = newMessage.userId == currentUserId;
+
                 // Generate display name if not present and not from current user
-                if (newMessage.displayName == null &&
-                    !newMessage.isFromCurrentUser) {
+                if (newMessage.displayName == null && !isFromCurrentUser) {
                   // Generate a display name based on the message's user ID
                   final displayName = _generateDisplayNameForUser(
                     newMessage.userId,
@@ -99,9 +102,19 @@ class MessageService {
                     content: newMessage.content,
                     userId: newMessage.userId,
                     createdAt: newMessage.createdAt,
-                    isFromCurrentUser: newMessage.isFromCurrentUser,
+                    isFromCurrentUser: isFromCurrentUser,
                     displayName: displayName,
                     avatarSeed: newMessage.userId, // Use user ID as avatar seed
+                  );
+                } else {
+                  // Update the message with correct isFromCurrentUser flag
+                  newMessage = Message(
+                    content: newMessage.content,
+                    userId: newMessage.userId,
+                    createdAt: newMessage.createdAt,
+                    isFromCurrentUser: isFromCurrentUser,
+                    displayName: newMessage.displayName,
+                    avatarSeed: newMessage.avatarSeed ?? newMessage.userId,
                   );
                 }
 
@@ -233,17 +246,31 @@ class MessageService {
 
       final messages = data.map<Message>((json) {
         var message = Message.fromJson(json);
+        
+        // Determine if this message is from the current user
+        final currentUserId = _authService.getSessionUserId();
+        final isFromCurrentUser = message.userId == currentUserId;
 
         // Add display name if not present and not from current user
-        if (message.displayName == null && !message.isFromCurrentUser) {
+        if (message.displayName == null && !isFromCurrentUser) {
           final displayName = _generateDisplayNameForUser(message.userId);
           message = Message(
             content: message.content,
             userId: message.userId,
             createdAt: message.createdAt,
-            isFromCurrentUser: message.isFromCurrentUser,
+            isFromCurrentUser: isFromCurrentUser,
             displayName: displayName,
             avatarSeed: message.userId, // Use user ID as avatar seed
+          );
+        } else {
+          // Update the message with correct isFromCurrentUser flag
+          message = Message(
+            content: message.content,
+            userId: message.userId,
+            createdAt: message.createdAt,
+            isFromCurrentUser: isFromCurrentUser,
+            displayName: message.displayName,
+            avatarSeed: message.avatarSeed ?? message.userId,
           );
         }
 

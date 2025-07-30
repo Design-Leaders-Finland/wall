@@ -142,13 +142,13 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _handleSendMessage(String content) async {
+  Future<bool> _handleSendMessage(String content) async {
     final (userId, isGuest) = _authController.getUserIdForMessaging();
     return _processSendMessage(content, userId);
   }
 
   // Helper method to process the message sending after authentication check
-  Future<void> _processSendMessage(String content, String userId) async {
+  Future<bool> _processSendMessage(String content, String userId) async {
     try {
       final success = await _messageController.sendMessage(
         content: content,
@@ -157,14 +157,18 @@ class _HomePageState extends State<HomePage> {
 
       if (success) {
         // Message sent successfully
+        return true;
       } else {
         _showMessage('Failed to send message. Please try again.');
+        return false;
       }
     } on RateLimitException catch (e) {
       _showMessage(e.message);
+      return false;
     } catch (e) {
       AppLogger.error('Error sending message', e);
       _showMessage('Failed to send message. Please try again.');
+      return false;
     }
   }
 
@@ -261,7 +265,10 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         // Message input at bottom
-        MessageInput(onSendMessage: _handleSendMessage),
+        MessageInput(
+          onSendMessage: _handleSendMessage,
+          isInCooldown: _isInCooldown(),
+        ),
       ],
     );
   }

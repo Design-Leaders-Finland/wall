@@ -6,17 +6,23 @@ void main() {
   group('MessageInput Widget Tests', () {
     late List<String> sentMessages;
 
-    void onSendMessage(String message) {
+    Future<bool> onSendMessage(String message) async {
       sentMessages.add(message);
+      return true; // Simulate successful send
     }
 
     setUp(() {
       sentMessages = [];
     });
 
-    Widget createMessageInputWidget() {
+    Widget createMessageInputWidget({bool isInCooldown = false}) {
       return MaterialApp(
-        home: Scaffold(body: MessageInput(onSendMessage: onSendMessage)),
+        home: Scaffold(
+          body: MessageInput(
+            onSendMessage: onSendMessage,
+            isInCooldown: isInCooldown,
+          ),
+        ),
       );
     }
 

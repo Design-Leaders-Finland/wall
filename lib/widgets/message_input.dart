@@ -4,9 +4,14 @@ import 'package:flutter/material.dart';
 import '../services/message_service.dart';
 
 class MessageInput extends StatefulWidget {
-  final Function(String) onSendMessage;
+  final Future<bool> Function(String) onSendMessage;
+  final bool isInCooldown;
 
-  const MessageInput({super.key, required this.onSendMessage});
+  const MessageInput({
+    super.key,
+    required this.onSendMessage,
+    this.isInCooldown = false,
+  });
 
   @override
   State<MessageInput> createState() => _MessageInputState();
@@ -14,6 +19,7 @@ class MessageInput extends StatefulWidget {
 
 class _MessageInputState extends State<MessageInput> {
   final TextEditingController _messageController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   int _characterCount = 0;
 
   @override
@@ -28,12 +34,14 @@ class _MessageInputState extends State<MessageInput> {
     });
   }
 
-  void _handleSend() {
+  Future<void> _handleSend() async {
     final messageContent = _messageController.text.trim();
     if (messageContent.isNotEmpty &&
         messageContent.length <= MessageService.messageMaxLength) {
-      widget.onSendMessage(messageContent);
-      _messageController.clear();
+      final success = await widget.onSendMessage(messageContent);
+      if (success) {
+        _messageController.clear();
+      }
     } else if (messageContent.length > MessageService.messageMaxLength) {
       // Show an error message if the user somehow bypasses the UI constraints
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,6 +59,7 @@ class _MessageInputState extends State<MessageInput> {
   void dispose() {
     _messageController.removeListener(_updateCharCount);
     _messageController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -61,6 +70,7 @@ class _MessageInputState extends State<MessageInput> {
         _characterCount >
         MessageService.messageMaxLength * 0.8; // Over 80% of limit
     final bool isAtLimit = _characterCount >= MessageService.messageMaxLength;
+    final bool canSend = !isAtLimit && !widget.isInCooldown;
 
     return Container(
       decoration: BoxDecoration(
@@ -92,6 +102,7 @@ class _MessageInputState extends State<MessageInput> {
               Expanded(
                 child: TextField(
                   controller: _messageController,
+                  focusNode: _focusNode,
                   maxLength: MessageService.messageMaxLength,
                   decoration: InputDecoration(
                     hintText: 'Your message',
@@ -107,8 +118,11 @@ class _MessageInputState extends State<MessageInput> {
                     ),
                   ),
                   onSubmitted: (_) {
-                    if (!isAtLimit) {
-                      _handleSend();
+                    if (canSend) {
+                      _handleSend().then((_) {
+                        // Keep focus on the text field after sending
+                        _focusNode.requestFocus();
+                      });
                     }
                   },
                   textInputAction: TextInputAction.send,
@@ -117,13 +131,15 @@ class _MessageInputState extends State<MessageInput> {
               // Send button
               IconButton(
                 icon: const Icon(Icons.send_rounded),
-                onPressed: isAtLimit ? null : _handleSend,
-                color: isAtLimit
-                    ? colorScheme.onSurfaceVariant.withAlpha(
+                onPressed: canSend ? _handleSend : null,
+                color: canSend
+                    ? colorScheme.primary
+                    : colorScheme.onSurfaceVariant.withAlpha(
                         128,
-                      ) // Disabled color
-                    : colorScheme.primary,
-                tooltip: 'Send message',
+                      ), // Disabled color
+                tooltip: widget.isInCooldown
+                    ? 'Wait for cooldown to finish'
+                    : 'Send message',
                 splashRadius: 24.0,
                 iconSize: 26.0,
               ),
