@@ -36,8 +36,89 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/message.dart';
 import '../utils/logger.dart';
 import 'auth_service.dart';
+import 'package:string_validator/string_validator.dart'
+    show isBase64, trim, stripLow;
 
 class MessageService {
+  /// Sanitizes user input for messages to prevent security threats and unwanted content.
+  ///
+  /// This method performs the following steps:
+  /// - Trims leading/trailing whitespace
+  /// - Removes control characters (using string_validator's stripLow)
+  /// - Removes invisible Unicode characters (zero-width, directional, etc.)
+  /// - Collapses multiple spaces into one
+  /// - Blocks long base64 payloads (potential malware)
+  /// - Removes HTML tags and entities (prevents XSS and markup injection)
+  /// - Removes common script/JS patterns (prevents XSS)
+  /// - Blocks basic SQL injection patterns
+  /// - Blocks emoji/symbol-only messages (spam/noise)
+  /// - Returns empty string for messages that are only whitespace after sanitization
+  ///
+  /// Returns sanitized message string, or empty string if unsafe/invalid.
+  static String sanitizeInput(String input) {
+    String sanitized = trim(input);
+    sanitized = stripLow(
+      sanitized,
+      false,
+    ); // Remove control chars, keep newlines false
+    sanitized = sanitized.replaceAll(
+      RegExp(r'[\u200B-\u200F\u202A-\u202E]'),
+      '',
+    ); // Remove invisible Unicode
+    sanitized = sanitized.replaceAll(RegExp(r' +'), ' '); // Collapse spaces
+
+    // Block base64 payloads (long strings that are valid base64)
+    if (isBase64(sanitized) && sanitized.length > 32) {
+      return '';
+    }
+
+    // Remove HTML tags (including nested/malformed)
+    sanitized = sanitized.replaceAll(RegExp(r'<.*?>', dotAll: true), '');
+
+    // Remove HTML entities
+    sanitized = sanitized.replaceAll(RegExp(r'&[a-zA-Z0-9#]+;'), '');
+
+    // Block obfuscated JS/script patterns
+    sanitized = sanitized.replaceAll(
+      RegExp(r'<script.*?>.*?</script>', caseSensitive: false, dotAll: true),
+      '',
+    );
+    sanitized = sanitized.replaceAll(
+      RegExp(r'javas\s*\u0063ript:|javascript:', caseSensitive: false),
+      '',
+    );
+    sanitized = sanitized.replaceAll(
+      RegExp(r'onerror\s*=\s*".*?"', caseSensitive: false),
+      '',
+    );
+
+    // Block SQL injection patterns (basic)
+    sanitized = sanitized.replaceAll(
+      RegExp(
+        r"('|;|--|OR |AND |SELECT |INSERT |UPDATE |DELETE |DROP )",
+        caseSensitive: false,
+      ),
+      '',
+    );
+
+    // Remove emoji-only messages (if message is only emoji/symbols, return empty)
+    // Only return empty if input does NOT contain any letters or numbers
+    if (sanitized.isNotEmpty &&
+        !RegExp(r'[a-zA-Z0-9]').hasMatch(sanitized) &&
+        RegExp(
+          r'^[\u2190-\u21FF\u2600-\u27BF\u1F300-\u1F6FF\u1F900-\u1F9FF\u1FA70-\u1FAFF\u2000-\u206F\u2B50-\u2B55\u23F0-\u23FA\s]+$',
+        ).hasMatch(sanitized)) {
+      return '';
+    }
+
+    // Remove messages that are only whitespace after sanitization
+    if (sanitized.trim().isEmpty) {
+      return '';
+    }
+
+    return sanitized;
+  }
+
   final SupabaseClient _supabaseClient = Supabase.instance.client;
   final AuthService _authService = AuthService();
   late final RealtimeChannel _messagesChannel;
@@ -246,7 +327,7 @@ class MessageService {
 
       final messages = data.map<Message>((json) {
         var message = Message.fromJson(json);
-        
+
         // Determine if this message is from the current user
         final currentUserId = _authService.getSessionUserId();
         final isFromCurrentUser = message.userId == currentUserId;
@@ -295,12 +376,14 @@ class MessageService {
     required String userId,
     DateTime? lastMessageSentTime,
   }) async {
-    // Validate content
-    if (content.isEmpty) {
+    // Sanitize input
+    String sanitized = MessageService.sanitizeInput(content);
+
+    // Validate sanitized content
+    if (sanitized.isEmpty) {
       return false;
     }
-
-    if (content.length > messageMaxLength) {
+    if (sanitized.length > messageMaxLength) {
       return false;
     }
 
@@ -316,7 +399,7 @@ class MessageService {
     final displayName = _authService.getHumanReadableName();
     final avatarSeed = _authService.getAvatarSeed();
     final message = Message(
-      content: content,
+      content: sanitized,
       userId: userId,
       createdAt: DateTime.now(),
       isFromCurrentUser: true, // Mark as from current user
