@@ -16,6 +16,8 @@ extension UIApplication {
 @objc class AppIconManager: NSObject {
     @objc static func updateAppIcon(isDark: Bool) {
         // Set to dark icon when in dark mode, otherwise use the default icon
-        UIApplication.shared.setAlternateIconName(isDark ? "AppIcon-Dark" : nil)
+        DispatchQueue.main.async {
+            UIApplication.shared.setAlternateIconName(isDark ? "AppIcon-Dark" : nil)
+        }
     }
 }

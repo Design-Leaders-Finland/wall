@@ -1,11 +1,13 @@
 {
   "images" : [
     {
+      "filename" : "Icon-Small-40.png",
       "idiom" : "iphone",
       "scale" : "2x",
       "size" : "20x20"
     },
     {
+      "filename" : "Icon-60.png",
       "idiom" : "iphone",
       "scale" : "3x",
       "size" : "20x20"
@@ -17,91 +19,44 @@
       "size" : "29x29"
     },
     {
-      "idiom" : "iphone",
-      "scale" : "2x",
-      "size" : "29x29"
-    },
-    {
-      "idiom" : "iphone",
-      "scale" : "3x",
-      "size" : "29x29"
-    },
-    {
-      "idiom" : "iphone",
-      "scale" : "2x",
-      "size" : "40x40"
-    },
-    {
-      "idiom" : "iphone",
-      "scale" : "3x",
-      "size" : "40x40"
-    },
-    {
-      "idiom" : "iphone",
-      "scale" : "2x",
-      "size" : "60x60"
-    },
-    {
-      "idiom" : "iphone",
-      "scale" : "3x",
-      "size" : "60x60"
-    },
-    {
-      "idiom" : "ios-marketing",
-      "scale" : "1x",
-      "size" : "1024x1024"
-    },
-    {
-      "filename" : "Icon-Notification.png",
-      "idiom" : "iphone",
-      "scale" : "1x",
-      "size" : "20x20"
-    },
-    {
-      "filename" : "Icon-Small-40.png",
-      "idiom" : "iphone",
-      "scale" : "1x",
-      "size" : "40x40"
-    },
-    {
       "filename" : "Icon-Small@2x.png",
       "idiom" : "iphone",
-      "scale" : "1x",
-      "size" : "58x58"
-    },
-    {
-      "filename" : "Icon-60.png",
-      "idiom" : "iphone",
-      "scale" : "1x",
-      "size" : "60x60"
-    },
-    {
-      "filename" : "Icon-Small-40@2x.png",
-      "idiom" : "iphone",
-      "scale" : "1x",
-      "size" : "80x80"
+      "scale" : "2x",
+      "size" : "29x29"
     },
     {
       "filename" : "Icon-Small@3x.png",
       "idiom" : "iphone",
-      "scale" : "1x",
-      "size" : "87x87"
+      "scale" : "3x",
+      "size" : "29x29"
+    },
+    {
+      "filename" : "Icon-Small-40@2x.png",
+      "idiom" : "iphone",
+      "scale" : "2x",
+      "size" : "40x40"
     },
     {
       "filename" : "Icon-60@2x.png",
       "idiom" : "iphone",
-      "scale" : "1x",
-      "size" : "120x120"
+      "scale" : "3x",
+      "size" : "40x40"
+    },
+    {
+      "filename" : "Icon-60@2x.png",
+      "idiom" : "iphone",
+      "scale" : "2x",
+      "size" : "60x60"
     },
     {
       "filename" : "Icon-60@3x.png",
       "idiom" : "iphone",
-      "scale" : "1x",
-      "size" : "180x180"
+      "scale" : "3x",
+      "size" : "60x60"
     },
     {
       "filename" : "iTunesArtwork@2x.png",
-      "idiom" : "iphone",
+      "idiom" : "ios-marketing",
       "scale" : "1x",
       "size" : "1024x1024"
     }

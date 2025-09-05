@@ -19,7 +19,7 @@ import UIKit
         name: "fi.designleaders.wall/app_icon",
         binaryMessenger: controller.binaryMessenger)
     
-    iconChannel.setMethodCallHandler { [weak self] (call, result) in
+    iconChannel.setMethodCallHandler { (call, result) in
       if call.method == "updateAppIcon" {
         if let args = call.arguments as? [String: Any],
            let isDark = args["isDark"] as? Bool {
@@ -29,7 +29,7 @@ import UIKit
           result(FlutterError(code: "INVALID_ARGUMENTS", message: "Arguments are missing or invalid", details: nil))
         }
       } else {
-        result(FlutterMethodNotImplemented)
+        result(nil)
       }
     }
     
