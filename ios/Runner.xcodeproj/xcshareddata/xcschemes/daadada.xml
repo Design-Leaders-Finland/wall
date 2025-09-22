@@ -1,0 +1,91 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Interview Timeline" id="Z1xJkYvQkKXv9gGvYx1A">
+    <mxGraphModel dx="1000" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Month Labels -->
+        <mxCell id="2" value="September" style="text;html=1" parent="1">
+          <mxGeometry x="40" y="20" width="100" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="3" value="October" style="text;html=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="160" y="20" width="100" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="4" value="November" style="text;html=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="280" y="20" width="100" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="5" value="December" style="text;html=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="100" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="6" value="January" style="text;html=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="520" y="20" width="100" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="7" value="February" style="text;html=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="640" y="20" width="100" height="30" as="geometry"/>
+        </mxCell>
+
+        <!-- Interview Rounds -->
+        <!-- September -->
+        <mxCell id="8" value="Round 1\nSep 9" style="shape=rectangle;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="100" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="9" value="Round 2\nSep 30" style="shape=rectangle;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="110" width="100" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- October -->
+        <mxCell id="10" value="Round 3\nOct 21" style="shape=rectangle;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="160" y="60" width="100" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="11" value="Round 4\nOct 30" style="shape=rectangle;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="160" y="110" width="100" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- November -->
+        <mxCell id="12" value="Round 5\nNov 11" style="shape=rectangle;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="280" y="60" width="100" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- December (Holiday) -->
+        <mxCell id="13" value="No Interviews\nHoliday Break" style="shape=rectangle;fillColor=#eeeeee;strokeColor=#999999;" vertex="1" parent="1">
+          <mxGeometry x="400" y="60" width="100" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- January -->
+        <mxCell id="14" value="Round 6\nJan 6" style="shape=rectangle;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="520" y="60" width="100" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="15" value="Round 7\nJan 27" style="shape=rectangle;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="520" y="110" width="100" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- February -->
+        <mxCell id="16" value="Round 8\nFeb 17" style="shape=rectangle;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="640" y="60" width="100" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="17" value="Round 9\nMar 10" style="shape=rectangle;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="640" y="110" width="100" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="18" value="Round 10\nMar 31" style="shape=rectangle;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="640" y="160" width="100" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- Roadmap Updates -->
+        <mxCell id="19" value="Roadmap Update" style="shape=ellipse;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="160" y="160" width="100" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="20" value="Roadmap Update" style="shape=ellipse;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="280" y="160" width="100" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="21" value="Roadmap Update" style="shape=ellipse;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="520" y="160" width="100" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="22" value="Roadmap Update" style="shape=ellipse;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="640" y="210" width="100" height="30" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
