@@ -1,6 +1,17 @@
 import Cocoa
 import FlutterMacOS
 
+// Helper class to manage the app icon based on theme
+@objc class AppIconManager: NSObject {
+    @objc static func updateAppIcon(isDark: Bool) {
+        // macOS doesn't support changing app icon at runtime directly
+        // We'd need to implement an app icon switcher service
+        DispatchQueue.main.async {
+            print("App icon theme change requested: \(isDark ? "dark" : "light")")
+        }
+    }
+}
+
 @main
 class AppDelegate: FlutterAppDelegate {
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -24,7 +35,7 @@ class AppDelegate: FlutterAppDelegate {
         name: "fi.designleaders.wall/app_icon",
         binaryMessenger: controller.engine.binaryMessenger)
     
-    iconChannel.setMethodCallHandler { [weak self] (call, result) in
+    iconChannel.setMethodCallHandler { (call, result) in
       if call.method == "updateAppIcon" {
         if let args = call.arguments as? [String: Any],
            let isDark = args["isDark"] as? Bool {
