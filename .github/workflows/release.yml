@@ -9,8 +9,45 @@ permissions:
   packages: write
 
 jobs:
+  check-ci-cd:
+    name: Check CI/CD Pipeline Status
+    runs-on: ubuntu-latest
+    outputs:
+      ci-passed: ${{ steps.check-status.outputs.ci-passed }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Check CI/CD Pipeline Status
+      id: check-status
+      run: |
+        # Get the commit SHA that the tag points to
+        COMMIT_SHA=$(git rev-list -n 1 ${{ github.ref }})
+        echo "Tag points to commit: $COMMIT_SHA"
+        
+        # Check if CI/CD workflow passed for this commit
+        WORKFLOW_RUNS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ci-cd.yml/runs?head_sha=$COMMIT_SHA&status=completed")
+        
+        # Check if any run was successful
+        SUCCESS_COUNT=$(echo "$WORKFLOW_RUNS" | jq '[.workflow_runs[] | select(.conclusion == "success")] | length')
+        
+        if [ "$SUCCESS_COUNT" -gt 0 ]; then
+          echo "CI/CD pipeline passed for commit $COMMIT_SHA"
+          echo "ci-passed=true" >> $GITHUB_OUTPUT
+        else
+          echo "CI/CD pipeline did not pass for commit $COMMIT_SHA"
+          echo "ci-passed=false" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   release-build:
     name: Release Build & Deploy
+    needs: check-ci-cd
+    if: needs.check-ci-cd.outputs.ci-passed == 'true'
     strategy:
       matrix:
         include:
@@ -53,9 +90,6 @@ jobs:
         
     - name: Install dependencies
       run: flutter pub get
-      
-    - name: Run full test suite
-      run: flutter test --coverage
       
     - name: Build Android APK
       if: matrix.platform == 'android'
@@ -136,7 +170,7 @@ jobs:
   create-release:
     name: Create Release
     if: startsWith(github.ref, 'refs/tags/')
-    needs: release-build
+    needs: [check-ci-cd, release-build]
     runs-on: ubuntu-latest
     
     steps:
