@@ -21,11 +21,16 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+      with:
+        egress-policy: audit
+
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       
     - name: Setup Flutter
-      uses: subosito/flutter-action@v2
+      uses: subosito/flutter-action@0ca7a949e71ae44c8e688a51c5e7e93b2c87e295 # v2.22.0
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
         channel: 'stable'
@@ -58,7 +63,7 @@ jobs:
         dart doc --output docs
         
     - name: Upload documentation artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: documentation
         path: docs/
@@ -66,7 +71,7 @@ jobs:
         
     - name: Deploy documentation to GitHub Pages
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      uses: peaceiris/actions-gh-pages@v4
+      uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./docs
@@ -84,7 +89,7 @@ jobs:
         CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
     - name: Upload coverage to Qlty
-      uses: qltysh/qlty-action/coverage@v1
+      uses: qltysh/qlty-action/coverage@a2277a908db90c4c868832fb9204521fb940fdb4 # v1
       continue-on-error: true
       with:
         token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
@@ -114,11 +119,16 @@ jobs:
     runs-on: ${{ matrix.os }}
     
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+      with:
+        egress-policy: audit
+
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       
     - name: Setup Flutter
-      uses: subosito/flutter-action@v2
+      uses: subosito/flutter-action@0ca7a949e71ae44c8e688a51c5e7e93b2c87e295 # v2.22.0
       with:
         flutter-version: ${{ env.FLUTTER_VERSION }}
         channel: 'stable'
@@ -126,7 +136,7 @@ jobs:
         
     - name: Setup Java (for Android)
       if: matrix.platform == 'android'
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3.14.1
       with:
         distribution: 'zulu'
         java-version: '17'
@@ -151,7 +161,7 @@ jobs:
       run: ${{ matrix.build-cmd }}
       
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: build-${{ matrix.platform }}
         path: |
@@ -169,17 +179,22 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+      with:
+        egress-policy: audit
+
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       
     - name: Download web build artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       with:
         name: build-web
         path: build/
         
     - name: Deploy to Netlify
-      uses: nwtgck/actions-netlify@v3.0
+      uses: nwtgck/actions-netlify@4cbaf4c08f1a7bfa537d6113472ef4424e4eb654 # v3.0.0
       with:
         publish-dir: './build/web'
         production-branch: main
