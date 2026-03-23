@@ -16,8 +16,13 @@ jobs:
       ci-passed: ${{ steps.check-status.outputs.ci-passed }}
     
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+      with:
+        egress-policy: audit
+
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       
     - name: Check CI/CD Pipeline Status
       id: check-status
@@ -58,8 +63,13 @@ jobs:
     runs-on: ${{ matrix.runner }}
     
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+      with:
+        egress-policy: audit
+
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       
     - name: Extract version from tag
       id: version
@@ -83,7 +93,7 @@ jobs:
         
     - name: Setup Java for Android
       if: matrix.platform == 'android'
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3.14.1
       with:
         distribution: 'zulu'
         java-version: '17'
@@ -140,28 +150,28 @@ jobs:
         
     - name: Upload Android APK
       if: matrix.platform == 'android'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: android-apk
         path: build/app/outputs/flutter-apk/${{ steps.version.outputs.APP_VERSION }}.apk
         
     - name: Upload Android App Bundle
       if: matrix.platform == 'android'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: android-aab
         path: build/app/outputs/bundle/release/${{ steps.version.outputs.APP_VERSION }}.aab
         
     - name: Upload Web Build
       if: matrix.platform == 'android'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: web-build
         path: build/${{ steps.version.outputs.APP_VERSION }}-web.zip
         
     - name: Upload iOS Build
       if: matrix.platform == 'ios'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: ios-build
         path: build/ios/${{ steps.version.outputs.APP_VERSION }}-ios.zip
@@ -174,22 +184,27 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Harden the runner (Audit all outbound calls)
+      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+      with:
+        egress-policy: audit
+
     - name: Download Android APK
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       with:
         name: android-apk
         path: ./artifacts/
       continue-on-error: true
         
     - name: Download Android App Bundle
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       with:
         name: android-aab
         path: ./artifacts/
       continue-on-error: true
         
     - name: Download iOS Build
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       with:
         name: ios-build
         path: ./artifacts/
