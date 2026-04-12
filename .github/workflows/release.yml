@@ -2,7 +2,7 @@ name: Release tagged version
 
 on:
   push:
-    tags: [ 'v*' ]
+    tags: ["v*"]
 
 permissions:
   contents: write
@@ -14,40 +14,40 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       ci-passed: ${{ steps.check-status.outputs.ci-passed }}
-    
-    steps:
-    - name: Harden the runner (Audit all outbound calls)
-      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
-      with:
-        egress-policy: audit
 
-    - name: Checkout repository
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      
-    - name: Check CI/CD Pipeline Status
-      id: check-status
-      run: |
-        # Get the commit SHA that the tag points to
-        COMMIT_SHA=$(git rev-list -n 1 ${{ github.ref }})
-        echo "Tag points to commit: $COMMIT_SHA"
-        
-        # Check if CI/CD workflow passed for this commit
-        WORKFLOW_RUNS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ci-cd.yml/runs?head_sha=$COMMIT_SHA&status=completed")
-        
-        # Check if any run was successful
-        SUCCESS_COUNT=$(echo "$WORKFLOW_RUNS" | jq '[.workflow_runs[] | select(.conclusion == "success")] | length')
-        
-        if [ "$SUCCESS_COUNT" -gt 0 ]; then
-          echo "CI/CD pipeline passed for commit $COMMIT_SHA"
-          echo "ci-passed=true" >> $GITHUB_OUTPUT
-        else
-          echo "CI/CD pipeline did not pass for commit $COMMIT_SHA"
-          echo "ci-passed=false" >> $GITHUB_OUTPUT
-          exit 1
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Check CI/CD Pipeline Status
+        id: check-status
+        run: |
+          # Get the commit SHA that the tag points to
+          COMMIT_SHA=$(git rev-list -n 1 ${{ github.ref }})
+          echo "Tag points to commit: $COMMIT_SHA"
+
+          # Check if CI/CD workflow passed for this commit
+          WORKFLOW_RUNS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ci-cd.yml/runs?head_sha=$COMMIT_SHA&status=completed")
+
+          # Check if any run was successful
+          SUCCESS_COUNT=$(echo "$WORKFLOW_RUNS" | jq '[.workflow_runs[] | select(.conclusion == "success")] | length')
+
+          if [ "$SUCCESS_COUNT" -gt 0 ]; then
+            echo "CI/CD pipeline passed for commit $COMMIT_SHA"
+            echo "ci-passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "CI/CD pipeline did not pass for commit $COMMIT_SHA"
+            echo "ci-passed=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release-build:
     name: Release Build & Deploy
@@ -60,166 +60,201 @@ jobs:
             runner: ubuntu-latest
           - platform: ios
             runner: macos-latest
+          - platform: windows
+            runner: windows-latest
     runs-on: ${{ matrix.runner }}
-    
-    steps:
-    - name: Harden the runner (Audit all outbound calls)
-      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
-      with:
-        egress-policy: audit
 
-    - name: Checkout repository
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      
-    - name: Extract version from tag
-      id: version
-      run: |
-        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "APP_VERSION=color-surface-v$VERSION" >> $GITHUB_OUTPUT
-        else
-          echo "VERSION=dev" >> $GITHUB_OUTPUT
-          echo "APP_VERSION=color-surface-dev" >> $GITHUB_OUTPUT
-        fi
-      shell: bash
-      
-    - name: Setup Flutter
-      uses: subosito/flutter-action@0ca7a949e71ae44c8e688a51c5e7e93b2c87e295 # v2
-      with:
-        flutter-version: '3.32.6'
-        channel: 'stable'
-        cache: true
-        
-    - name: Setup Java for Android
-      if: matrix.platform == 'android'
-      uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3.14.1
-      with:
-        distribution: 'zulu'
-        java-version: '17'
-        
-    - name: Install dependencies
-      run: flutter pub get
-      
-    - name: Build Android APK
-      if: matrix.platform == 'android'
-      run: |
-        flutter build apk --release
-        echo "Android APK build completed, checking output:"
-        ls -la build/app/outputs/flutter-apk/ || echo "Android APK directory not found"
-        # Rename APK with app name and version
-        if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
-          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/${{ steps.version.outputs.APP_VERSION }}.apk
-        fi
-      shell: bash
-      
-    - name: Build Android App Bundle
-      if: matrix.platform == 'android'
-      run: |
-        flutter build appbundle --release
-        echo "Android App Bundle build completed, checking output:"
-        ls -la build/app/outputs/bundle/release/ || echo "Android AAB directory not found"
-        # Rename AAB with app name and version
-        if [ -f "build/app/outputs/bundle/release/app-release.aab" ]; then
-          mv build/app/outputs/bundle/release/app-release.aab build/app/outputs/bundle/release/${{ steps.version.outputs.APP_VERSION }}.aab
-        fi
-      shell: bash
-      
-    - name: Build Web
-      if: matrix.platform == 'android'
-      run: |
-        flutter config --enable-web
-        flutter build web --release
-        # Create a zip file for web build with app name and version
-        cd build
-        zip -r ${{ steps.version.outputs.APP_VERSION }}-web.zip web/
-        cd ..
-      shell: bash
-        
-    - name: Build iOS (without signing)
-      if: matrix.platform == 'ios'
-      run: |
-        flutter build ios --release --no-codesign
-        echo "iOS build completed, checking output:"
-        ls -la build/ios/iphoneos/ || echo "iOS build directory not found"
-        # Create a zip file for iOS build with app name and version
-        cd build/ios
-        zip -r ${{ steps.version.outputs.APP_VERSION }}-ios.zip iphoneos/
-        cd ../..
-      shell: bash
-        
-    - name: Upload Android APK
-      if: matrix.platform == 'android'
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-      with:
-        name: android-apk
-        path: build/app/outputs/flutter-apk/${{ steps.version.outputs.APP_VERSION }}.apk
-        
-    - name: Upload Android App Bundle
-      if: matrix.platform == 'android'
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-      with:
-        name: android-aab
-        path: build/app/outputs/bundle/release/${{ steps.version.outputs.APP_VERSION }}.aab
-        
-    - name: Upload Web Build
-      if: matrix.platform == 'android'
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-      with:
-        name: web-build
-        path: build/${{ steps.version.outputs.APP_VERSION }}-web.zip
-        
-    - name: Upload iOS Build
-      if: matrix.platform == 'ios'
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-      with:
-        name: ios-build
-        path: build/ios/${{ steps.version.outputs.APP_VERSION }}-ios.zip
-      continue-on-error: true
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+            echo "APP_VERSION=wall-v$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=dev" >> $GITHUB_OUTPUT
+            echo "APP_VERSION=wall-dev" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@0ca7a949e71ae44c8e688a51c5e7e93b2c87e295 # v2
+        with:
+          flutter-version: "3.35.5"
+          channel: "stable"
+          cache: true
+
+      - name: Setup Java for Android
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3.14.1
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android APK
+        if: matrix.platform == 'android'
+        run: |
+          flutter build apk --release
+          echo "Android APK build completed, checking output:"
+          ls -la build/app/outputs/flutter-apk/ || echo "Android APK directory not found"
+          # Rename APK with app name and version
+          if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
+            mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/${{ steps.version.outputs.APP_VERSION }}.apk
+          fi
+        shell: bash
+
+      - name: Build Android App Bundle
+        if: matrix.platform == 'android'
+        run: |
+          flutter build appbundle --release
+          echo "Android App Bundle build completed, checking output:"
+          ls -la build/app/outputs/bundle/release/ || echo "Android AAB directory not found"
+          # Rename AAB with app name and version
+          if [ -f "build/app/outputs/bundle/release/app-release.aab" ]; then
+            mv build/app/outputs/bundle/release/app-release.aab build/app/outputs/bundle/release/${{ steps.version.outputs.APP_VERSION }}.aab
+          fi
+        shell: bash
+
+      - name: Build Web
+        if: matrix.platform == 'android'
+        run: |
+          flutter config --enable-web
+          flutter build web --release
+          # Create a zip file for web build with app name and version
+          cd build
+          zip -r ${{ steps.version.outputs.APP_VERSION }}-web.zip web/
+          cd ..
+        shell: bash
+
+      - name: Build iOS (without signing)
+        if: matrix.platform == 'ios'
+        run: |
+          flutter build ios --release --no-codesign
+          echo "iOS build completed, checking output:"
+          ls -la build/ios/iphoneos/ || echo "iOS build directory not found"
+          # Create a zip file for iOS build with app name and version
+          cd build/ios
+          zip -r ${{ steps.version.outputs.APP_VERSION }}-ios.zip iphoneos/
+          cd ../..
+        shell: bash
+
+      - name: Build Windows
+        if: matrix.platform == 'windows'
+        run: |
+          flutter config --enable-windows-desktop
+          flutter build windows --release
+          $dest = "build\${{ steps.version.outputs.APP_VERSION }}-windows"
+          New-Item -ItemType Directory -Force -Path $dest | Out-Null
+          Copy-Item -Recurse "build\windows\x64\runner\Release\*" $dest
+          Compress-Archive -Path $dest -DestinationPath "build\${{ steps.version.outputs.APP_VERSION }}-windows.zip" -Force
+        shell: pwsh
+
+      - name: Upload Android APK
+        if: matrix.platform == 'android'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/${{ steps.version.outputs.APP_VERSION }}.apk
+
+      - name: Upload Android App Bundle
+        if: matrix.platform == 'android'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: android-aab
+          path: build/app/outputs/bundle/release/${{ steps.version.outputs.APP_VERSION }}.aab
+
+      - name: Upload Web Build
+        if: matrix.platform == 'android'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: web-build
+          path: build/${{ steps.version.outputs.APP_VERSION }}-web.zip
+
+      - name: Upload iOS Build
+        if: matrix.platform == 'ios'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ios-build
+          path: build/ios/${{ steps.version.outputs.APP_VERSION }}-ios.zip
+        continue-on-error: true
+
+      - name: Upload Windows Build
+        if: matrix.platform == 'windows'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: windows-build
+          path: build/${{ steps.version.outputs.APP_VERSION }}-windows.zip
+        continue-on-error: true
 
   create-release:
     name: Create Release
     if: startsWith(github.ref, 'refs/tags/')
     needs: [check-ci-cd, release-build]
     runs-on: ubuntu-latest
-    
-    steps:
-    - name: Harden the runner (Audit all outbound calls)
-      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
-      with:
-        egress-policy: audit
 
-    - name: Download Android APK
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-      with:
-        name: android-apk
-        path: ./artifacts/
-      continue-on-error: true
-        
-    - name: Download Android App Bundle
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-      with:
-        name: android-aab
-        path: ./artifacts/
-      continue-on-error: true
-        
-    - name: Download iOS Build
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-      with:
-        name: ios-build
-        path: ./artifacts/
-      continue-on-error: true
-        
-    - name: List downloaded artifacts
-      run: |
-        echo "Downloaded artifacts:"
-        find ./artifacts -type f -name "*" 2>/dev/null || echo "No artifacts found"
-        
-    - name: Create Release
-      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
-      with:
-        files: ./artifacts/*
-        generate_release_notes: true
-        fail_on_unmatched_files: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
+      - name: Download Android APK
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: android-apk
+          path: ./artifacts/
+        continue-on-error: true
+
+      - name: Download Android App Bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: android-aab
+          path: ./artifacts/
+        continue-on-error: true
+
+      - name: Download iOS Build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ios-build
+          path: ./artifacts/
+        continue-on-error: true
+
+      - name: Download Windows Build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: windows-build
+          path: ./artifacts/
+        continue-on-error: true
+
+      - name: Download Web Build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: web-build
+          path: ./artifacts/
+        continue-on-error: true
+
+      - name: List downloaded artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          find ./artifacts -type f -name "*" 2>/dev/null || echo "No artifacts found"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1
+        with:
+          files: ./artifacts/*
+          generate_release_notes: true
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

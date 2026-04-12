@@ -2,12 +2,12 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 env:
-  FLUTTER_VERSION: '3.32.6'
+  FLUTTER_VERSION: "3.35.5"
 
 permissions:
   contents: write
@@ -19,82 +19,82 @@ jobs:
   quality-checks:
     name: Code Quality
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Harden the runner (Audit all outbound calls)
-      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
-      with:
-        egress-policy: audit
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
 
-    - name: Checkout repository
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      
-    - name: Setup Flutter
-      uses: subosito/flutter-action@0ca7a949e71ae44c8e688a51c5e7e93b2c87e295 # v2.22.0
-      with:
-        flutter-version: ${{ env.FLUTTER_VERSION }}
-        channel: 'stable'
-        cache: true
-        
-    - name: Install dependencies
-      run: flutter pub get
-      
-    - name: Check for outdated packages
-      run: flutter pub outdated
-      continue-on-error: true
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-    - name: Check for security vulnerabilities
-      run: |
-        echo "Checking for known security vulnerabilities..."
-        flutter pub deps --json | grep -i "security\|vulnerability" || echo "No obvious security issues found"
-  
-    - name: Check formatting
-      run: |
-        echo "Checking code formatting..."
-        dart format --set-exit-if-changed .
-        
-    - name: Analyze code
-      run: |
-        echo "Running static analysis..."
-        flutter analyze --fatal-infos
-        
-    - name: Generate API documentation
-      run: |
-        dart doc --output docs
-        
-    - name: Upload documentation artifacts
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-      with:
-        name: documentation
-        path: docs/
-        retention-days: 7
-        
-    - name: Deploy documentation to GitHub Pages
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs
-        force_orphan: true
+      - name: Setup Flutter
+        uses: subosito/flutter-action@0ca7a949e71ae44c8e688a51c5e7e93b2c87e295 # v2.22.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+          cache: true
 
-    - name: Run unit tests
-      run: |
-        echo "Running unit tests..."
-        flutter test --coverage
-        
-    - name: Upload coverage to Codacy
-      run: bash <(curl -Ls https://coverage.codacy.com/get.sh)
-      continue-on-error: true
-      env:
-        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+      - name: Install dependencies
+        run: flutter pub get
 
-    - name: Upload coverage to Qlty
-      uses: qltysh/qlty-action/coverage@a2277a908db90c4c868832fb9204521fb940fdb4 # v1
-      continue-on-error: true
-      with:
-        token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-        files: coverage/lcov.info
-      
+      - name: Check for outdated packages
+        run: flutter pub outdated
+        continue-on-error: true
+
+      - name: Check for security vulnerabilities
+        run: |
+          echo "Checking for known security vulnerabilities..."
+          flutter pub deps --json | grep -i "security\|vulnerability" || echo "No obvious security issues found"
+
+      - name: Check formatting
+        run: |
+          echo "Checking code formatting..."
+          dart format --set-exit-if-changed .
+
+      - name: Analyze code
+        run: |
+          echo "Running static analysis..."
+          flutter analyze --fatal-infos
+
+      - name: Generate API documentation
+        run: |
+          dart doc --output docs
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: documentation
+          path: docs/
+          retention-days: 7
+
+      - name: Deploy documentation to GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          force_orphan: true
+
+      - name: Run unit tests
+        run: |
+          echo "Running unit tests..."
+          flutter test --coverage
+
+      - name: Upload coverage to Codacy
+        run: bash <(curl -Ls https://coverage.codacy.com/get.sh)
+        continue-on-error: true
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+
+      - name: Upload coverage to Qlty
+        uses: qltysh/qlty-action/coverage@a2277a908db90c4c868832fb9204521fb940fdb4 # v1
+        continue-on-error: true
+        with:
+          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
+          files: coverage/lcov.info
+
   # Build tests for different platforms
   build-tests:
     name: Build Tests
@@ -115,94 +115,94 @@ jobs:
           - platform: ios
             os: macos-latest
             build-cmd: flutter build ios --release --no-codesign
-            
-    runs-on: ${{ matrix.os }}
-    
-    steps:
-    - name: Harden the runner (Audit all outbound calls)
-      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
-      with:
-        egress-policy: audit
 
-    - name: Checkout repository
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      
-    - name: Setup Flutter
-      uses: subosito/flutter-action@0ca7a949e71ae44c8e688a51c5e7e93b2c87e295 # v2.22.0
-      with:
-        flutter-version: ${{ env.FLUTTER_VERSION }}
-        channel: 'stable'
-        cache: true
-        
-    - name: Setup Java (for Android)
-      if: matrix.platform == 'android'
-      uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3.14.1
-      with:
-        distribution: 'zulu'
-        java-version: '17'
-        
-    - name: Install dependencies
-      run: flutter pub get
-      
-    - name: Enable platform
-      run: |
-        if [ "${{ matrix.platform }}" = "web" ]; then
-          flutter config --enable-web
-        elif [ "${{ matrix.platform }}" = "windows" ]; then
-          flutter config --enable-windows-desktop
-        elif [ "${{ matrix.platform }}" = "android" ]; then
-          flutter config --enable-android
-        elif [ "${{ matrix.platform }}" = "ios" ]; then
-          flutter config --enable-ios
-        fi
-      shell: bash
-      
-    - name: Build ${{ matrix.platform }}
-      run: ${{ matrix.build-cmd }}
-      
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-      with:
-        name: build-${{ matrix.platform }}
-        path: |
-          build/web/
-          build/app/outputs/flutter-apk/
-          build/windows/x64/runner/Release/
-          build/ios/iphoneos/
-        retention-days: 7
-      continue-on-error: true
-      
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@0ca7a949e71ae44c8e688a51c5e7e93b2c87e295 # v2.22.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+          cache: true
+
+      - name: Setup Java (for Android)
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3.14.1
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Enable platform
+        run: |
+          if [ "${{ matrix.platform }}" = "web" ]; then
+            flutter config --enable-web
+          elif [ "${{ matrix.platform }}" = "windows" ]; then
+            flutter config --enable-windows-desktop
+          elif [ "${{ matrix.platform }}" = "android" ]; then
+            flutter config --enable-android
+          elif [ "${{ matrix.platform }}" = "ios" ]; then
+            flutter config --enable-ios
+          fi
+        shell: bash
+
+      - name: Build ${{ matrix.platform }}
+        run: ${{ matrix.build-cmd }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: build-${{ matrix.platform }}
+          path: |
+            build/web/
+            build/app/outputs/flutter-apk/
+            build/windows/x64/runner/Release/
+            build/ios/iphoneos/
+          retention-days: 7
+        continue-on-error: true
+
   deploy-netlify:
     name: Deploy to Netlify
     needs: build-tests
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-    - name: Harden the runner (Audit all outbound calls)
-      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
-      with:
-        egress-policy: audit
 
-    - name: Checkout repository
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      
-    - name: Download web build artifact
-      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-      with:
-        name: build-web
-        path: build/
-        
-    - name: Deploy to Netlify
-      uses: nwtgck/actions-netlify@4cbaf4c08f1a7bfa537d6113472ef4424e4eb654 # v3.0.0
-      with:
-        publish-dir: './build/web'
-        production-branch: main
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        deploy-message: "Deploy to Netlify from GitHub Actions"
-        enable-pull-request-comment: false
-        enable-commit-comment: false
-      env:
-        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-      timeout-minutes: 1
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Download web build artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: build-web
+          path: build/
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@4cbaf4c08f1a7bfa537d6113472ef4424e4eb654 # v3.0.0
+        with:
+          publish-dir: "./build/web"
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy to Netlify from GitHub Actions"
+          enable-pull-request-comment: false
+          enable-commit-comment: false
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 1

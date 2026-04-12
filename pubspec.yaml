@@ -1,7 +1,7 @@
 name: wall
 description: "Anonymous chat wall"
 license: Apache-2.0
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 homepage: https://wall.designleaders.fi
@@ -9,8 +9,8 @@ repository: https://github.com/Design-Leaders-Finland/wall
 issue_tracker: https://github.com/Design-Leaders-Finland/wall/issues
 
 environment:
-  sdk: ^3.8.1
-  flutter: 3.32.6
+  sdk: ">=3.9.2 <4.0.0"
+  flutter: 3.35.5
 
 dependencies:
   flutter:
