@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the initializeApp method from the AppInitializationService class, for the Dart programming language.">
+  <title>initializeApp method - AppInitializationService class - app_initialization_service library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../../static-assets/styles.css?v1">
+  <link rel="icon" href="../../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../../index.html">wall</a></li>
+    <li><a href="../../services_app_initialization_service/">services&#47;app_initialization_service.dart</a></li>
+    <li><a href="../../services_app_initialization_service/AppInitializationService-class.html">AppInitializationService</a></li>
+    <li class="self-crumb">initializeApp static method</li>
+  </ol>
+  <div class="self-name">initializeApp</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+<div
+    id="dartdoc-main-content"
+    class="main-content"
+    data-above-sidebar="services_app_initialization_service&#47;AppInitializationService-class-sidebar.html"
+    data-below-sidebar="">
+    <div>
+  <div id="external-links" class="btn-group"><a title="View source code" class="source-link" href="https://github.com/Design-Leaders-Finland/wall/blob/main/lib/services/app_initialization_service.dart#L13"><span class="material-symbols-outlined">description</span></a></div>
+<h1><span class="kind-method">initializeApp</span> static method 
+</h1></div>
+
+    <section class="multi-line-signature">
+      
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
+<span class="name ">initializeApp</span>(<wbr>)
+
+      
+
+    </section>
+    
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">static Future&lt;void&gt; initializeApp() async {
+  AppLogger.info(&#39;Starting app initialization&#39;);
+
+  &#47;&#47; Record start time to calculate elapsed time later
+  final startTime = DateTime.now();
+
+  try {
+    &#47;&#47; Configure SSL certificate first
+    await SSLCertificateService.configureCertificate();
+
+    &#47;&#47; Test SSL connection to ensure certificate is working
+    const supabaseUrl = &#39;https:&#47;&#47;vncfwjhduqhevwjspnny.supabase.co&#39;;
+    final sslTest = await SSLCertificateService.testSSLConnection(
+      supabaseUrl,
+    );
+
+    if (!sslTest) {
+      AppLogger.warning(
+        &#39;SSL connection test failed, but proceeding with initialization&#39;,
+      );
+    } else {
+      AppLogger.info(&#39;SSL connection test successful&#39;);
+    }
+
+    &#47;&#47; Initialize Supabase client with SSL enforced
+    await Supabase.initialize(
+      url: supabaseUrl,
+      anonKey:
+          &#39;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuY2Z3amhkdXFoZXZ3anNwbm55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyMzE0NDksImV4cCI6MjA2NzgwNzQ0OX0.3ATScVIraTIukGP0bchZrWOZEYmzRb0wO2GcqzqHt_A&#39;,
+      realtimeClientOptions: const RealtimeClientOptions(
+        eventsPerSecond: 10,
+        logLevel: RealtimeLogLevel.info,
+      ),
+    );
+
+    AppLogger.info(
+      &#39;Supabase initialized with SSL certificate and enforced SSL connections&#39;,
+    );
+
+    &#47;&#47; Calculate elapsed time
+    final elapsedMilliseconds = DateTime.now()
+        .difference(startTime)
+        .inMilliseconds;
+    AppLogger.info(&#39;Initialization completed in $elapsedMilliseconds ms&#39;);
+
+    &#47;&#47; If initialization was faster than minimum splash duration,
+    &#47;&#47; wait for the remaining time
+    if (elapsedMilliseconds &lt; minimumSplashDuration) {
+      final remainingTime = minimumSplashDuration - elapsedMilliseconds;
+      AppLogger.info(
+        &#39;Waiting additional $remainingTime ms to meet minimum splash duration&#39;,
+      );
+      await Future.delayed(Duration(milliseconds: remainingTime));
+    }
+  } catch (e, stackTrace) {
+    AppLogger.error(&#39;Error during app initialization&#39;, e, stackTrace);
+    &#47;&#47; Still ensure minimum splash duration even if there was an error
+    final elapsedMilliseconds = DateTime.now()
+        .difference(startTime)
+        .inMilliseconds;
+    if (elapsedMilliseconds &lt; minimumSplashDuration) {
+      await Future.delayed(
+        Duration(milliseconds: minimumSplashDuration - elapsedMilliseconds),
+      );
+    }
+    rethrow; &#47;&#47; Re-throw the error so it can be handled in the UI
+  }
+}</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../../index.html">wall</a></li>
+    <li><a href="../../services_app_initialization_service/">app_initialization_service</a></li>
+    <li><a href="../../services_app_initialization_service/AppInitializationService-class.html">AppInitializationService</a></li>
+    <li class="self-crumb">initializeApp static method</li>
+</ol>
+
+    <h5>AppInitializationService class</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div><!--/.sidebar-offcanvas-->
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+</div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    wall
+      0.1.0
+  </span>
+  
+</footer>
+
+
+<script src="../../static-assets/highlight.pack.js?v1"></script>
+<script src="../../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+
