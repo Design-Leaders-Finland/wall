@@ -4,6 +4,9 @@ on:
   push:
     tags: ["v*"]
 
+env:
+  FLUTTER_VERSION: "3.44.2" # single source of truth, reused by all jobs
+
 permissions:
   contents: write
   packages: write
@@ -16,13 +19,9 @@ jobs:
       ci-passed: ${{ steps.check-status.outputs.ci-passed }}
 
     steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
-        with:
-          egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Check CI/CD Pipeline Status
         id: check-status
@@ -65,13 +64,9 @@ jobs:
     runs-on: ${{ matrix.runner }}
 
     steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
-        with:
-          egress-policy: audit
 
       - name: Checkout repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Extract version from tag
         id: version
@@ -86,12 +81,23 @@ jobs:
           fi
         shell: bash
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+      - name: Setup Flutter SDK # local composite action: avoids marketplace actions with unpinned nested steps
+        # Install the pinned Flutter SDK used by the repo.
+        uses: ./.github/actions/setup-flutter
         with:
-          flutter-version: "3.35.5"
-          channel: "stable"
-          cache: true
+          version: ${{ env.FLUTTER_VERSION }}
+
+      - name: Cache pub dependencies
+        # Reuse pub cache to speed up dependency installs.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.pub-cache
+            ~/AppData/Local/Pub/Cache
+          key: ${{ runner.os }}-pub-${{ env.FLUTTER_VERSION }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-${{ env.FLUTTER_VERSION }}-
+
 
       - name: Setup Java for Android
         if: matrix.platform == 'android'
@@ -205,10 +211,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
-        with:
-          egress-policy: audit
 
       - name: Download Android APK
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
