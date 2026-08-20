@@ -37,7 +37,7 @@ class AppInitializationService {
       // Initialize Supabase client with SSL enforced
       await Supabase.initialize(
         url: supabaseUrl,
-        anonKey:
+        publishableKey:
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuY2Z3amhkdXFoZXZ3anNwbm55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIyMzE0NDksImV4cCI6MjA2NzgwNzQ0OX0.3ATScVIraTIukGP0bchZrWOZEYmzRb0wO2GcqzqHt_A',
         realtimeClientOptions: const RealtimeClientOptions(
           eventsPerSecond: 10,

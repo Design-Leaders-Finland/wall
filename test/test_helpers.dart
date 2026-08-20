@@ -28,7 +28,7 @@ class TestHelpers {
       // If not initialized, initialize it
       await Supabase.initialize(
         url: 'https://test.supabase.co',
-        anonKey: 'test-anon-key-for-testing-purposes-only',
+        publishableKey: 'test-anon-key-for-testing-purposes-only',
       );
     }
   }
