@@ -5,7 +5,7 @@ on:
     tags: ["v*"]
 
 env:
-  FLUTTER_VERSION: "3.44.2" # single source of truth, reused by all jobs
+  FLUTTER_VERSION: "3.47.1" # single source of truth, reused by all jobs
 
 permissions:
   contents: write

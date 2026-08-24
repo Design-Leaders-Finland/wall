@@ -10,7 +10,7 @@ issue_tracker: https://github.com/Design-Leaders-Finland/wall/issues
 
 environment:
   sdk: ^3.12.1
-  flutter: ">=3.44.2"
+  flutter: ">=3.47.1"
 
 dependencies:
   flutter:
