@@ -36,8 +36,9 @@ Live web app: **[wall.designleaders.fi](https://wall.designleaders.fi)**
 
 **Prerequisites:** Flutter 3.35.5 (Dart 3.9.2)
 [Install Flutter](https://docs.flutter.dev/get-started/install) (includes Dart):
-   - Follow the instructions for your operating system.
-   - After installation, run `flutter doctor` in your terminal to check for any missing dependencies.
+
+- Follow the instructions for your operating system.
+- After installation, run `flutter doctor` in your terminal to check for any missing dependencies.
 
 ```sh
 git clone https://github.com/Design-Leaders-Finland/wall.git

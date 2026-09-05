@@ -11,7 +11,7 @@ concurrency: # new commits on the same branch/PR cancel the older, now-obsolete 
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: "3.47.1" # single source of truth, reused by all jobs
+  FLUTTER_VERSION: "3.47.2" # single source of truth, reused by all jobs
 
 permissions:
   contents: write
@@ -25,13 +25,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Flutter SDK # local composite action: avoids marketplace actions with unpinned nested steps
         # Install the pinned Flutter SDK used by the repo.
-        uses: ./.github/actions/setup-flutter
+        uses: design-leaders-finland/.github/actions/setup-flutter@b9dc79c591b43b0a6eac4d5dcb0c5e89be9af16b
         with:
           version: ${{ env.FLUTTER_VERSION }}
 
@@ -120,13 +119,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Flutter SDK # local composite action: avoids marketplace actions with unpinned nested steps
         # Install the pinned Flutter SDK used by the repo.
-        uses: ./.github/actions/setup-flutter
+        uses: design-leaders-finland/.github/actions/setup-flutter@b9dc79c591b43b0a6eac4d5dcb0c5e89be9af16b
         with:
           version: ${{ env.FLUTTER_VERSION }}
 

@@ -5,7 +5,7 @@ on:
     tags: ["v*"]
 
 env:
-  FLUTTER_VERSION: "3.47.1" # single source of truth, reused by all jobs
+  FLUTTER_VERSION: "3.47.2" # single source of truth, reused by all jobs
 
 permissions:
   contents: write
@@ -19,7 +19,6 @@ jobs:
       ci-passed: ${{ steps.check-status.outputs.ci-passed }}
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -64,7 +63,6 @@ jobs:
     runs-on: ${{ matrix.runner }}
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -83,7 +81,7 @@ jobs:
 
       - name: Setup Flutter SDK # local composite action: avoids marketplace actions with unpinned nested steps
         # Install the pinned Flutter SDK used by the repo.
-        uses: ./.github/actions/setup-flutter
+        uses: design-leaders-finland/.github/actions/setup-flutter@b9dc79c591b43b0a6eac4d5dcb0c5e89be9af16b
         with:
           version: ${{ env.FLUTTER_VERSION }}
 
@@ -97,7 +95,6 @@ jobs:
           key: ${{ runner.os }}-pub-${{ env.FLUTTER_VERSION }}-${{ hashFiles('**/pubspec.lock') }}
           restore-keys: |
             ${{ runner.os }}-pub-${{ env.FLUTTER_VERSION }}-
-
 
       - name: Setup Java for Android
         if: matrix.platform == 'android'
@@ -211,7 +208,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Download Android APK
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -253,7 +249,7 @@ jobs:
           find ./artifacts -type f -name "*" 2>/dev/null || echo "No artifacts found"
 
       - name: Create Release
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
           files: ./artifacts/*
           generate_release_notes: true
